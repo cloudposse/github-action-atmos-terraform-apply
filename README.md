@@ -74,13 +74,13 @@ Before running this action, first create and store a planfile with the companion
 
 ### Prerequisites
 
-This GitHub Action requires AWS access for two different purposes. This action will attempt to first run `terraform apply` against a given component and 
-then will use another role to save that given Terraform Plan to an S3 Bucket with metadata in a DynamoDB table. We recommend configuring 
+This GitHub Action requires AWS access for two different purposes. This action will attempt to first pull a Terraform planfile from a S3 Bucket with metadata in a DynamoDB table with one role. 
+Then the action will run `terraform apply` against that component with another role. We recommend configuring 
 [OpenID Connect with AWS](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) 
-to allow GitHub to assume roles in AWS, and then deploying both a Terraform Plan role and a Terraform State role. 
+to allow GitHub to assume roles in AWS and then deploying both a Terraform Apply role and a Terraform State role. 
 For Cloud Posse documentation on setting up GitHub OIDC, see our [`github-oidc-provider` component](https://docs.cloudposse.com/components/library/aws/github-oidc-provider/).
 
-In order to store Terraform State, we configure an S3 Bucket to store plan files and a DynamoDB table to track plan metadata. Both will need to be deployed before running
+In order to retrieve Terraform State, we configure an S3 Bucket to store plan files and a DynamoDB table to track plan metadata. Both will need to be deployed before running
 this action. For more on setting up those components, see the `gitops` component (__documentation pending__). This action will then use the [github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage) action to update these resources.
 
 ### Workflow example

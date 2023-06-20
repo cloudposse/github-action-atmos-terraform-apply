@@ -71,6 +71,7 @@ runs:
       - name: Get Planfile Name
         if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
         id: planfile
+        shell: bash
         run: |
           PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{github.sha}}.planfile" | sed 's#/#_#g') 
           PLAN_FILE_PATH=$(pwd)
@@ -127,6 +128,7 @@ runs:
       - name: Atmos Setup Workspace
         if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
         id: atmos-init
+        shell: bash
         run: |
           ATMOS_BASE_PATH=$GITHUB_WORKSPACE atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
 

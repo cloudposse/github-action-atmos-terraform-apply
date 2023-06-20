@@ -30,7 +30,7 @@
 
 -->
 
-This Github Action is used to run Terraform plan for a single, Atmos-supported component and save the given planfile to S3 and DynamoDB.
+This Github Action is used to run Terraform apply for a single, Atmos-supported component with a saved planfile in S3 and DynamoDB.
 
 ---
 
@@ -60,7 +60,7 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 
 ## Introduction
 
-This Github Action is used to run Terraform plan for a single, Atmos-supported component and save the given planfile to S3 and DynamoDB.
+This Github Action is used to run Terraform apply for a single, Atmos-supported component with a saved planfile in S3 and DynamoDB.
 
 
 
@@ -164,6 +164,7 @@ Check out these related projects.
 
 For additional context, refer to some of these links.
 
+- [github-action-atmos-terraform-plan](https://github.com/cloudposse/github-action-atmos-terraform-plan) - Companion GitHub Action to create and store Terraform plans for a given component
 - [github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage) - GitHub Action to store Terraform plans
 
 

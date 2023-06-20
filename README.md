@@ -62,6 +62,8 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 
 This Github Action is used to run Terraform apply for a single, Atmos-supported component with a saved planfile in S3 and DynamoDB.
 
+Before running this action, first create and store a planfile with the companion action, [github-action-atmos-terraform-plan](https://github.com/cloudposse/github-action-atmos-terraform-plan).
+
 
 
 
@@ -72,7 +74,7 @@ This Github Action is used to run Terraform apply for a single, Atmos-supported 
 
 ### Prerequisites
 
-This GitHub Action requires AWS access for two different purposes. This action will attempt to first run `terraform plan` against a given component and 
+This GitHub Action requires AWS access for two different purposes. This action will attempt to first run `terraform apply` against a given component and 
 then will use another role to save that given Terraform Plan to an S3 Bucket with metadata in a DynamoDB table. We recommend configuring 
 [OpenID Connect with AWS](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) 
 to allow GitHub to assume roles in AWS, and then deploying both a Terraform Plan role and a Terraform State role. 

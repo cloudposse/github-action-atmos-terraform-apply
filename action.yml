@@ -1,5 +1,5 @@
-name: 'GitHub Action Atmos Terraform Plan'
-description: 'GitHub Action Atmos Terraform Plan'
+name: 'GitHub Action Atmos Terraform Apply'
+description: 'GitHub Action Atmos Terraform Apply'
 author: hello@cloudposse.com
 branding:
   icon: 'server'

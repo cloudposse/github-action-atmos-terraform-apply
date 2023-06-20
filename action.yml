@@ -137,7 +137,7 @@ runs:
         run: |
           cd ${{ inputs.component-path }}
           tfcmt \
-            --config "${{ github.workspace }}/.tfcmt/github_job_summary.yaml" \
+            --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
             -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
             -var "component:${{ inputs.component }}" \
             -var "stack:${{ inputs.stack }}" \

@@ -11,10 +11,14 @@ ci:
 templates:
   apply_title: |
     {{ if eq .ExitCode 1}}
-    ## [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply) Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`!
+    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`!
+    
+    [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply) 
     {{ end }}
     {{- if eq .ExitCode 0}}
-    ## [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply) Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
+    ##Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
+    
+    [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply)
     {{ end }}
 
   result: |

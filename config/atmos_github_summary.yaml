@@ -23,7 +23,7 @@ templates:
     [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply) 
 
   apply_success: |
-    ##Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
+    ## Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
     
     [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply)
 

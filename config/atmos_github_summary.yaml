@@ -18,7 +18,7 @@ templates:
     {{ end }}
 
   apply_error: |
-    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`!
+    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`
     
     [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply) 
 

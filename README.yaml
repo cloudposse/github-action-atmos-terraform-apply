@@ -59,12 +59,10 @@ usage: |-
     name: "atmos-terraform-apply"
 
     on:
-      workflow_dispatch: {}
+      workflow_dispatch:
       pull_request:
         types:
-          - opened
-          - synchronize
-          - reopened
+          - closed
         branches:
           - main
 

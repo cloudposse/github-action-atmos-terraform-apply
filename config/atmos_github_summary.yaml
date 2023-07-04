@@ -11,11 +11,23 @@ ci:
 templates:
   apply_title: |
     {{ if eq .ExitCode 1}}
-    ## :x: Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`!
+    {{template "apply_error" .}}
     {{ end }}
     {{- if eq .ExitCode 0}}
-    ## :white_check_mark: Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
+    {{template "apply_success" .}}
     {{ end }}
+
+  apply_error: |
+    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`
+    
+    [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply) 
+
+  apply_success: |
+    ## Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
+    
+    [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply)
+
+    {{template "result" .}}
 
   result: |
     <details><summary><a id="result" />{{if .Result}}{{ .Result }}{{end}}</summary>
@@ -23,18 +35,17 @@ templates:
     <br/>
     To reproduce this locally, run:<br/><br/>
 
+    ```shell
+    atmos terraform apply {{.Vars.component}} -s {{.Vars.stack}}
+    ```
+    </details>
+
 terraform:
   apply:
     template: |
       {{template "apply_title" .}}
 
-      {{template "result" .}}
-      ```shell
-      atmos terraform apply {{.Vars.component}} -s {{.Vars.stack}}
-      ```
-      </details>
-
-      <details><summary>Terraform <strong>Apply</strong> Summary</summary>
+      <details><summary><a id="apply" />Terraform <strong>Apply</strong> Summary</summary>
       {{wrapCode .CombinedOutput}}
       </details>
     when_parse_error:

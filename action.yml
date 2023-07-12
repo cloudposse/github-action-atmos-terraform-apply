@@ -103,7 +103,7 @@ runs:
 
     - name: Retrieve Plan
       if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
-      uses: cloudposse/github-action-terraform-plan-storage@1.6.2
+      uses: cloudposse/github-action-terraform-plan-storage@v1
       id: retrieve-plan
       with:
         action: getPlan
@@ -115,7 +115,7 @@ runs:
 
     - name: Retrieve Lockfile
       if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
-      uses: cloudposse/github-action-terraform-plan-storage@1.6.2
+      uses: cloudposse/github-action-terraform-plan-storage@v1
       with:
         action: getPlan
         planPath: ${{ inputs.component-path}}/.terraform.lock.hcl

@@ -174,8 +174,8 @@ runs:
       if: ${{ fromJSON(steps.settings.outputs.actions_enabled) && fromJSON(inputs.enable-infracost) }}
       shell: bash
       run: |
-        PLAN_FILE="${{ steps.atmos-plan.outputs.plan_file_path }}/${{ steps.atmos-plan.outputs.plan_file }}"
-        PLAN_FILE_JSON="${{ steps.atmos-plan.outputs.plan_file_path }}/${{ steps.atmos-plan.outputs.plan_file }}.json"
+        PLAN_FILE="${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }}"
+        PLAN_FILE_JSON="${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }}.json"
 
         cd ${{ inputs.component-path }}
         terraform show -json $PLAN_FILE > $PLAN_FILE_JSON
@@ -194,7 +194,7 @@ runs:
     - if: ${{ fromJSON(steps.settings.outputs.actions_enabled) && fromJSON(inputs.enable-infracost) && fromJSON(inputs.debug) }}
       shell: bash
       run: |
-        cat ${{ steps.atmos-plan.outputs.plan_file_path }}/${{ steps.atmos-plan.outputs.plan_file }}.json
+        cat ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }}.json
         cat /tmp/infracost.txt
         cat /tmp/infracost.json
 

@@ -40,6 +40,24 @@ templates:
     ```
     </details>
 
+  infracost: |
+    <details><summary>
+    {{- $cost := .Vars.infracost_total_monthly_cost | float64 }}
+    {{- $roundedCost := printf "%.2f" $cost }}
+    {{- if eq $cost 0.0 }}
+    Infracost Estimate: monthly cost will not change
+    {{- else if gt $cost 0.0 }}
+    Infracost Estimate: monthly cost will increase by ${{ $roundedCost }} 📈
+    {{- else }}
+    Infracost Estimate: monthly cost will decrease by ${{ $roundedCost }} 📉
+    {{- end }}
+    </summary>
+
+      ```
+      {{- b64dec .Vars.infracost_details_diff_breakdown | html }}
+      ```
+
+    </details>
 terraform:
   apply:
     template: |
@@ -48,6 +66,9 @@ terraform:
       <details><summary><a id="apply" />Terraform <strong>Apply</strong> Summary</summary>
       {{wrapCode .CombinedOutput}}
       </details>
+      {{if ne .Vars.infracost_details_diff_breakdown ""}}
+      {{template "infracost" .}}
+      {{end}}
     when_parse_error:
       template: |
         {{template "apply_title" .}}

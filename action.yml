@@ -63,7 +63,7 @@ runs:
 
     - uses: hashicorp/setup-terraform@v2
       with:
-        terraform-version: ${{ inputs.terraform-version }}
+        terraform_version: ${{ inputs.terraform-version }}
 
     - uses: actions/setup-node@v3
       with:

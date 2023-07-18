@@ -28,6 +28,7 @@ jobs:
           terraform-state-role: ${{ secrets.TERRAFORM_STATE_ROLE }}
           terraform-state-bucket: ${{ secrets.TERRAFORM_STATE_BUCKET }}
           terraform-state-table: ${{ secrets.TERRAFORM_STATE_TABLE }}
+          terraform-version: "1.5.2"
           aws-region: ${{ env.AWS_REGION }}
 
   test:
@@ -48,4 +49,5 @@ jobs:
           terraform-state-role: ${{ secrets.TERRAFORM_STATE_ROLE }}
           terraform-state-bucket: ${{ secrets.TERRAFORM_STATE_BUCKET }}
           terraform-state-table: ${{ secrets.TERRAFORM_STATE_TABLE }}
+          terraform-version: "1.5.2"
           aws-region: ${{ env.AWS_REGION }}

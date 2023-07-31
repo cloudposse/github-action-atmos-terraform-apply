@@ -20,17 +20,17 @@ templates:
   apply_error: |
     ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`
     
-    [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply) 
+    [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply-{{.Vars.stack}}-{{.Vars.component}}) 
 
   apply_success: |
     ## Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
     
-    [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply)
+    [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply-{{.Vars.stack}}-{{.Vars.component}})
 
     {{template "result" .}}
 
   result: |
-    <details><summary><a id="result" />{{if .Result}}{{ .Result }}{{end}}</summary>
+    <details><summary><a id="result-{{.Vars.stack}}-{{.Vars.component}}" />{{if .Result}}{{ .Result }}{{end}}</summary>
 
     <br/>
     To reproduce this locally, run:<br/><br/>
@@ -63,7 +63,7 @@ terraform:
     template: |
       {{template "apply_title" .}}
 
-      <details><summary><a id="apply" />Terraform <strong>Apply</strong> Summary</summary>
+      <details><summary><a id="apply-{{.Vars.stack}}-{{.Vars.component}}" />Terraform <strong>Apply</strong> Summary</summary>
       {{wrapCode .CombinedOutput}}
       </details>
       {{if ne .Vars.infracost_details_diff_breakdown ""}}

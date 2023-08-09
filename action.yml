@@ -14,10 +14,10 @@ inputs:
   component-path:
     description: "The path to the base component. Atmos defines this value as component_path."
     required: true
-  plan-file:
-    description: "Plan file can be passed from outside"
-    required: false
-    default: ""
+  sha:
+    description: "Commit SHA that will be used as suffix for plan file"
+    required: true
+    default: ${{ github.sha }}
   terraform-apply-role:
     description: "The AWS role to be used to apply Terraform."
     required: true
@@ -102,12 +102,7 @@ runs:
       id: planfile
       shell: bash
       run: |
-        if [ "${{ inputs.plan-file }}" = "" ]; then
-          PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{github.sha}}.planfile" | sed 's#/#_#g') 
-        else
-          PLAN_FILE="${{ inputs.plan-file }}"
-        fi
-        
+        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{input.sha}}.planfile" | sed 's#/#_#g') 
         PLAN_FILE_PATH=$(pwd)
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "plan_file_path=$PLAN_FILE_PATH" >> $GITHUB_OUTPUT

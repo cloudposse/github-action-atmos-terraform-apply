@@ -102,7 +102,7 @@ runs:
       id: planfile
       shell: bash
       run: |
-        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{input.sha}}.planfile" | sed 's#/#_#g') 
+        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{inputs.sha}}.planfile" | sed 's#/#_#g') 
         PLAN_FILE_PATH=$(pwd)
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "plan_file_path=$PLAN_FILE_PATH" >> $GITHUB_OUTPUT

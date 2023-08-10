@@ -59,6 +59,10 @@ inputs:
       not supplied by the user. When running this action on github.com, the default value is sufficient. When running on
       GHES, you can pass a personal access token for github.com if you are experiencing rate limiting.
     default: ${{ github.server_url == 'https://github.com' && github.token || '' }}
+outputs:
+  status:
+    description: Apply Status. Either 'succeeded' or 'failed'
+    value: ${{ steps.apply.outputs.status }}
 
 runs:
   using: "composite"
@@ -244,3 +248,13 @@ runs:
           --output $GITHUB_STEP_SUMMARY \
           apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} \
           -no-color
+
+        EXIT_CODE=$?
+
+        if [ $EXIT_CODE -eq 0 ]; then
+          echo "status=succeeded'" >> $GITHUB_OUTPUT
+          echo "Terraform apply executed successfully."
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "Terraform apply failed."
+        fi

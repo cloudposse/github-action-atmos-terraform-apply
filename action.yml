@@ -143,6 +143,7 @@ runs:
       with:
         action: getPlan
         planPath: ${{ inputs.component-path}}/.terraform.lock.hcl
+        commitSHA: '8c35369fcf6cdf2b5f74e4d041598ed5f1500164'
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
         tableName: ${{ inputs.terraform-state-table }}

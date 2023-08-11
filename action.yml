@@ -264,4 +264,6 @@ runs:
           echo "Terraform apply failed"
         fi
 
-        echo "summary=$(cat "${{ github.action_path }}/output.md")" >> $GITHUB_OUTPUT
+        summary=$(cat "${{ github.action_path }}/output.md")
+
+        echo "summary=$summary" >> $GITHUB_OUTPUT

@@ -14,8 +14,8 @@ inputs:
   component-path:
     description: "The path to the base component. Atmos defines this value as component_path."
     required: true
-  sha:
-    description: "SHA to use when building planfile name. Default: github.sha"
+  plan-id:
+    description: "Suffix that will be used for plan file name to uniquely identify it. Default: github.sha"
     required: true
     default: "${{ github.sha }}"
   terraform-apply-role:
@@ -106,7 +106,7 @@ runs:
       id: planfile
       shell: bash
       run: |
-        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{ inputs.sha }}.planfile" | sed 's#/#_#g') 
+        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{ inputs.plan-id }}.planfile" | sed 's#/#_#g') 
         PLAN_FILE_PATH=$(pwd)
 
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
@@ -128,7 +128,7 @@ runs:
       with:
         action: getPlan
         planPath: ./${{ steps.planfile.outputs.plan_file }}
-        commitSHA: ${{ inputs.sha }}
+        commitSHA: ${{ inputs.plan-id }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
         tableName: ${{ inputs.terraform-state-table }}
@@ -140,7 +140,7 @@ runs:
       with:
         action: getPlan
         planPath: ${{ inputs.component-path}}/.terraform.lock.hcl
-        commitSHA: ${{ inputs.sha }}
+        commitSHA: ${{ inputs.plan-id }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
         tableName: ${{ inputs.terraform-state-table }}

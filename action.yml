@@ -242,7 +242,6 @@ runs:
         cd ${{ inputs.component-path }}
 
         EXIT_CODE=0
-        APPLY_OUTPUT=''
 
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
@@ -252,10 +251,10 @@ runs:
           -var "job:${{ github.job }}" \
           -var "infracost_details_diff_breakdown:${{ steps.infracost-diff.outputs.infracost_details_diff_breakdown }}" \
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
-          --output $APPLY_OUTPUT \
+          --output "${{ github.action_path }}/output.md" \
           apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} || EXIT_CODE=$?
 
-        echo "$APPLY_OUTPUT" >> $GITHUB_STEP_SUMMARY
+        cat "${{ github.action_path }}/output.md" >> $GITHUB_STEP_SUMMARY
 
         if [ $EXIT_CODE -eq 0 ]; then
           echo "status=succeeded'" >> $GITHUB_OUTPUT
@@ -265,4 +264,4 @@ runs:
           echo "Terraform apply failed"
         fi
 
-        echo "summary=$APPLY_OUTPUT" >> $GITHUB_OUTPUT
+        echo "summary=$(cat "${{ github.action_path }}/output.md")" >> $GITHUB_OUTPUT

@@ -139,7 +139,7 @@ runs:
 
     - name: Retrieve Lockfile
       if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
-      uses: cloudposse/github-action-terraform-plan-storage@v1
+      uses: cloudposse/github-action-terraform-plan-storage@added-commitsha-overwrite-input
       with:
         action: getPlan
         planPath: ${{ inputs.component-path}}/.terraform.lock.hcl

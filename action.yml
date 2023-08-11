@@ -63,9 +63,6 @@ outputs:
   status:
     description: Apply Status. Either 'succeeded' or 'failed'
     value: ${{ steps.apply.outputs.status }}
-  summary:
-    description: Terraform apply summary
-    value: ${{ steps.apply.outputs.summary }}    
 
 runs:
   using: "composite"
@@ -251,10 +248,10 @@ runs:
           -var "job:${{ github.job }}" \
           -var "infracost_details_diff_breakdown:${{ steps.infracost-diff.outputs.infracost_details_diff_breakdown }}" \
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
-          --output "${{ github.action_path }}/output.md" \
+          --output "summary-${{ github.sha }}.md" \
           apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} || EXIT_CODE=$?
 
-        cat "${{ github.action_path }}/output.md" >> $GITHUB_STEP_SUMMARY
+        cat "summary-${{ github.sha }}.md" >> $GITHUB_STEP_SUMMARY
 
         if [ $EXIT_CODE -eq 0 ]; then
           echo "status=succeeded'" >> $GITHUB_OUTPUT
@@ -263,7 +260,3 @@ runs:
           echo "status=failed" >> $GITHUB_OUTPUT
           echo "Terraform apply failed"
         fi
-
-        summary=$(cat "${{ github.action_path }}/output.md")
-
-        echo "summary=$summary" >> $GITHUB_OUTPUT

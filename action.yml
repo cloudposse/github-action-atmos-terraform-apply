@@ -232,6 +232,7 @@ runs:
       if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
       id: apply
       shell: bash
+      continue-on-error: true
       run: |
         if [[ "${{ inputs.debug }}" == "true" ]]; then
           LOG_LEVEL="DEBUG"
@@ -239,6 +240,9 @@ runs:
           LOG_LEVEL="INFO"
         fi
         cd ${{ inputs.component-path }}
+
+        EXIT_CODE=0
+
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
@@ -248,10 +252,7 @@ runs:
           -var "infracost_details_diff_breakdown:${{ steps.infracost-diff.outputs.infracost_details_diff_breakdown }}" \
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
           --output $GITHUB_STEP_SUMMARY \
-          apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} \
-          -no-color
-
-        EXIT_CODE=$?
+          apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} || EXIT_CODE=$?
 
         if [ $EXIT_CODE -eq 0 ]; then
           echo "status=succeeded'" >> $GITHUB_OUTPUT

@@ -14,10 +14,10 @@ inputs:
   component-path:
     description: "The path to the base component. Atmos defines this value as component_path."
     required: true
-  plan-file:
-    description: "Full name of the plan-file to use. If not set plan-file name will be built by pattern '<stack>-<component>-<github.sha>'. Default: ''"
-    required: false
-    default: ''
+  sha:
+    description: "SHA to use when building planfile name. Default: ${{ github.sha }}"
+    required: true
+    default: ${{ github.sha }}
   terraform-apply-role:
     description: "The AWS role to be used to apply Terraform."
     required: true
@@ -106,12 +106,9 @@ runs:
       id: planfile
       shell: bash
       run: |
-        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{ github.sha }}.planfile" | sed 's#/#_#g') 
-        if [ "${{ inputs.plan-file }}" != "" ]; then
-          PLAN_FILE="${{ inputs.plan-file }}"
-        fi
-
+        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{ inputs.sha }}.planfile" | sed 's#/#_#g') 
         PLAN_FILE_PATH=$(pwd)
+
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "plan_file_path=$PLAN_FILE_PATH" >> $GITHUB_OUTPUT
 
@@ -131,7 +128,7 @@ runs:
       with:
         action: getPlan
         planPath: ./${{ steps.planfile.outputs.plan_file }}
-        commitSHA: '8c35369fcf6cdf2b5f74e4d041598ed5f1500164'
+        commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
         tableName: ${{ inputs.terraform-state-table }}
@@ -143,7 +140,7 @@ runs:
       with:
         action: getPlan
         planPath: ${{ inputs.component-path}}/.terraform.lock.hcl
-        commitSHA: '8c35369fcf6cdf2b5f74e4d041598ed5f1500164'
+        commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
         tableName: ${{ inputs.terraform-state-table }}
@@ -256,8 +253,8 @@ runs:
 
         if [ $EXIT_CODE -eq 0 ]; then
           echo "status=succeeded'" >> $GITHUB_OUTPUT
-          echo "Terraform apply executed successfully."
+          echo "Terraform apply executed successfully"
         else
           echo "status=failed" >> $GITHUB_OUTPUT
-          echo "Terraform apply failed."
+          echo "Terraform apply failed"
         fi

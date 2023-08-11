@@ -126,11 +126,12 @@ runs:
 
     - name: Retrieve Plan
       if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
-      uses: cloudposse/github-action-terraform-plan-storage@v1
+      uses: cloudposse/github-action-terraform-plan-storage@added-commitsha-overwrite-input
       id: retrieve-plan
       with:
         action: getPlan
         planPath: ./${{ steps.planfile.outputs.plan_file }}
+        commitSHA: '8c35369fcf6cdf2b5f74e4d041598ed5f1500164'
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
         tableName: ${{ inputs.terraform-state-table }}

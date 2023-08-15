@@ -250,7 +250,7 @@ runs:
         cat "${{ github.workspace }}/summary-${{ github.sha }}.md" >> $GITHUB_STEP_SUMMARY
 
         if [ $EXIT_CODE -eq 0 ]; then
-          echo "status=succeeded'" >> $GITHUB_OUTPUT
+          echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
         else
           echo "status=failed" >> $GITHUB_OUTPUT

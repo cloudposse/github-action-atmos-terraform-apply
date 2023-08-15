@@ -231,11 +231,6 @@ runs:
       shell: bash
       continue-on-error: true
       run: |
-        if [[ "${{ inputs.debug }}" == "true" ]]; then
-          LOG_LEVEL="DEBUG"
-        else
-          LOG_LEVEL="INFO"
-        fi
         cd ${{ inputs.component-path }}
 
         EXIT_CODE=0
@@ -249,6 +244,7 @@ runs:
           -var "infracost_details_diff_breakdown:${{ steps.infracost-diff.outputs.infracost_details_diff_breakdown }}" \
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
           --output "${{ github.workspace }}/summary-${{ github.sha }}.md" \
+          --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} || EXIT_CODE=$?
 
         cat "${{ github.workspace }}/summary-${{ github.sha }}.md" >> $GITHUB_STEP_SUMMARY

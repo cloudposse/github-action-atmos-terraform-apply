@@ -284,3 +284,6 @@ runs:
           echo "status=failed" >> $GITHUB_OUTPUT
           echo "Terraform apply failed"
         fi
+
+        # Link to a job that executed this action
+        echo "\n[Apply Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"

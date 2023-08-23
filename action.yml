@@ -38,6 +38,10 @@ inputs:
     description: "Atmos version to use for vendoring. Default 'latest'"
     required: false
     default: 'latest'
+  atmos-config-path:
+    description: "The path to the atmos.yaml file"
+    required: false
+    default: atmos.yaml
   terraform-version:
     description: 'The version of Terraform CLI to install. Instead of full version string you can also specify constraint string starting with "<" (for example `<1.13.0`) to install the latest version satisfying the constraint. A value of `latest` will install the latest version of Terraform CLI. Defaults to `latest`.'
     default: 'latest'
@@ -67,17 +71,24 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
-    - uses: hashicorp/setup-terraform@v2
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ inputs.terraform-version }}
+        terraform_wrapper: false
 
-    - uses: actions/setup-node@v3
+    - name: Install Node
+      uses: actions/setup-node@v3
       with:
         node-version: 16
 
-    - uses: cloudposse/github-action-setup-atmos@v1
+    - name: Install Atmos
+      uses: cloudposse/github-action-setup-atmos@v1
+      env:
+       ATMOS_CLI_CONFIG_PATH: ${{inputs.atmos-config-path}}
       with:
         atmos-version: ${{ inputs.atmos-version }}
         token: ${{ inputs.token }}
@@ -91,29 +102,54 @@ runs:
         stack: ${{ inputs.stack }}
         settings-path: github.actions_enabled
 
-    - name: Check if Action is Enable
-      id: settings
+    - name: Define Job Control State Variables
+      shell: bash
+      run: |
+        echo "DEBUG_ENABLED=${{ inputs.debug }}" >> $GITHUB_ENV
+        echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
+        echo "INFRACOST_ENABLED=false" >> $GITHUB_ENV
+
+    - name: Check If GitHub Actions is Enabled For Component
       shell: bash
       run: |
         if [[ "${{ steps.atmos-settings.outputs.value }}" == "true" ]]; then
-          echo "actions_enabled=true" >> $GITHUB_OUTPUT
+          echo "ACTIONS_ENABLED=true" >> $GITHUB_ENV
         else
-          echo "actions_enabled=false" >> $GITHUB_OUTPUT
+          echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
         fi
 
-    - name: Get Planfile Name
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
-      id: planfile
+    - name: Update Global Path for tfcmt
+      if: env.ACTIONS_ENABLED == 'true'
       shell: bash
       run: |
-        PLAN_FILE=$(echo "${{ inputs.stack }}-${{ inputs.component }}-${{ inputs.plan-id }}.planfile" | sed 's#/#_#g') 
-        PLAN_FILE_PATH=$(pwd)
+        # setup-tfcmt requires this PATH update when running on self-hosted (amazon linux) https://github.com/shmokmt/actions-setup-tfcmt/blob/main/action.yml#L11C1-L12C1
+        echo "/usr/local/bin" >> $GITHUB_PATH
 
+    - name: Install tfcmt
+      if: env.ACTIONS_ENABLED == 'true'
+      uses: shmokmt/actions-setup-tfcmt@v2
+      with:
+        version: v4.4.1
+
+    - name: Define Job Variables
+      if: env.ACTIONS_ENABLED == 'true'
+      id: vars
+      shell: bash
+      run: |
+        STACK_NAME=$(echo "${{ inputs.stack }}" | sed 's#/#_#g')
+        COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
+        COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
+        PLAN_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/$COMPONENT_SLUG-${{ github.sha }}.planfile"
+        LOCK_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/.terraform.lock.hcl"
+
+        echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
+        echo "component_name=$COMPONENT_NAME" >> $GITHUB_OUTPUT
+        echo "component_slug=$COMPONENT_SLUG" >> $GITHUB_OUTPUT
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
-        echo "plan_file_path=$PLAN_FILE_PATH" >> $GITHUB_OUTPUT
+        echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
     - name: Configure State AWS Credentials
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+      if: env.ACTIONS_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v2.2.0
       with:
         aws-region: ${{ inputs.aws-region }}
@@ -122,12 +158,12 @@ runs:
         mask-aws-account-id: "no"
 
     - name: Retrieve Plan
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+      if: env.ACTIONS_ENABLED == 'true'
       uses: cloudposse/github-action-terraform-plan-storage@added-commitsha-overwrite-input
       id: retrieve-plan
       with:
         action: getPlan
-        planPath: ./${{ steps.planfile.outputs.plan_file }}
+        planPath: ${{ steps.vars.outputs.plan_file }}
         commitSHA: ${{ inputs.commit-sha }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
@@ -135,11 +171,11 @@ runs:
         bucketName: ${{ inputs.terraform-state-bucket }}
 
     - name: Retrieve Lockfile
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+      if: env.ACTIONS_ENABLED == 'true'
       uses: cloudposse/github-action-terraform-plan-storage@added-commitsha-overwrite-input
       with:
         action: getPlan
-        planPath: ${{ inputs.component-path}}/.terraform.lock.hcl
+        planPath: ${{ steps.vars.outputs.lock_file }}
         commitSHA: ${{ inputs.commit-sha }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
@@ -147,7 +183,7 @@ runs:
         bucketName: ${{ inputs.terraform-state-bucket }}
 
     - name: Configure Apply AWS Credentials
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+      if: env.ACTIONS_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v2.2.0
       with:
         aws-region: ${{ inputs.aws-region }}
@@ -155,62 +191,54 @@ runs:
         role-session-name: "atmos-terraform-apply-gitops"
         mask-aws-account-id: "no"
 
-    # setup-tfcmt requires this PATH update when running on self-hosted (amazon linux)
-    # https://github.com/shmokmt/actions-setup-tfcmt/blob/main/action.yml#L11C1-L12C1
-    - name: Update path
-      shell: bash
-      run: |
-        echo "/usr/local/bin" >> $GITHUB_PATH
-
-    - name: Setup tfcmt
-      uses: shmokmt/actions-setup-tfcmt@v2
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
-      with:
-        version: v4.4.1
-
     - name: Atmos Setup Workspace
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+      if: env.ACTIONS_ENABLED == 'true'
       id: atmos-init
       shell: bash
       run: |
         ATMOS_BASE_PATH=$GITHUB_WORKSPACE atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
 
+    - name: Check Whether Infracost is Enabled
+      if: env.ACTIONS_ENABLED == 'true'
+      shell: bash
+      run: |
+        if [[ "${{ inputs.enable-infracost }}" == "true" ]]; then
+          echo "INFRACOST_ENABLED=true" >> $GITHUB_ENV
+        else
+          echo "INFRACOST_ENABLED=false" >> $GITHUB_ENV
+        fi
+
     - name: Setup Infracost
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) && fromJSON(inputs.enable-infracost) }}
+      if: env.INFRACOST_ENABLED == 'true'
       uses: infracost/actions/setup@v2
       with:
         api-key: ${{ inputs.infracost-api-key }}
 
-    - name: Generate Infracost diff
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) && fromJSON(inputs.enable-infracost) }}
+    - name: Generate Infracost Diff
+      if: env.INFRACOST_ENABLED == 'true'
       shell: bash
       run: |
-        PLAN_FILE="${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }}"
-        PLAN_FILE_JSON="${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }}.json"
-
-        cd ${{ inputs.component-path }}
-        terraform show -json $PLAN_FILE > $PLAN_FILE_JSON
-
         infracost diff \
-          --path=$PLAN_FILE_JSON \
+          --path="${{ steps.vars.outputs.plan_file }}.json" \
           --format=diff \
-          --project-name ${{ inputs.stack }}-${{ inputs.component }} \
+          --project-name "${{ inputs.stack }}-${{ inputs.component }}" \
           --out-file=/tmp/infracost.txt
         infracost diff \
-          --path=$PLAN_FILE_JSON \
+          --path="${{ steps.vars.outputs.plan_file }}.json" \
           --format=json \
-          --project-name ${{ inputs.stack }}-${{ inputs.component }} \
+          --project-name "${{ inputs.stack }}-${{ inputs.component }}" \
           --out-file=/tmp/infracost.json
 
-    - if: ${{ fromJSON(steps.settings.outputs.actions_enabled) && fromJSON(inputs.enable-infracost) && fromJSON(inputs.debug) }}
+    - name: Debug Infracost
+      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true'
       shell: bash
       run: |
-        cat ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }}.json
+        cat ${{ steps.vars.outputs.plan_file }}.json
         cat /tmp/infracost.txt
         cat /tmp/infracost.json
 
-    - name: Set infracost variables
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+    - name: Set Infracost Variables
+      if: env.INFRACOST_ENABLED == 'true'
       id: infracost-diff
       shell: bash
       run: |
@@ -226,7 +254,7 @@ runs:
         echo "infracost_diff_total_monthly_cost=$INFRACOST_DIFF_TOTAL_MONTHLY_COST" >> "$GITHUB_OUTPUT"
 
     - name: Terraform Apply
-      if: ${{ fromJSON(steps.settings.outputs.actions_enabled) }}
+      if: env.ACTIONS_ENABLED == 'true'
       id: apply
       shell: bash
       continue-on-error: true
@@ -243,11 +271,9 @@ runs:
           -var "job:${{ github.job }}" \
           -var "infracost_details_diff_breakdown:${{ steps.infracost-diff.outputs.infracost_details_diff_breakdown }}" \
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
-          --output "${{ github.workspace }}/summary-${{ github.sha }}.md" \
+          --output "$GITHUB_STEP_SUMMARY" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
-          apply -- terraform apply ${{ steps.planfile.outputs.plan_file_path }}/${{ steps.planfile.outputs.plan_file }} || EXIT_CODE=$?
-
-        cat "${{ github.workspace }}/summary-${{ github.sha }}.md" >> $GITHUB_STEP_SUMMARY
+          apply -- terraform apply ${{ steps.vars.outputs.plan_file }} || EXIT_CODE=$?
 
         if [ $EXIT_CODE -eq 0 ]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT

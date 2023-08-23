@@ -271,9 +271,11 @@ runs:
           -var "job:${{ github.job }}" \
           -var "infracost_details_diff_breakdown:${{ steps.infracost-diff.outputs.infracost_details_diff_breakdown }}" \
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
-          --output "$GITHUB_STEP_SUMMARY" \
+          --output "${{ github.workspace }}/summary-${{ github.sha }}.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- terraform apply ${{ steps.vars.outputs.plan_file }} || EXIT_CODE=$?
+
+        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 
         if [ $EXIT_CODE -eq 0 ]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT

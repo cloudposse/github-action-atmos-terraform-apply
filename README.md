@@ -137,6 +137,7 @@ this action. For more on setting up those components, see the `gitops` component
 | component | The name of the component to apply. | N/A | true |
 | component-path | The path to the base component. Atmos defines this value as component\_path. | N/A | true |
 | debug | Enable action debug mode. Default: 'false' | false | false |
+| default-branch | The default branch to use for the base ref. | ${{ github.event.repository.default\_branch }} | false |
 | enable-infracost | Whether to enable infracost summary. Requires secret `infracost-api-key` to be specified. Default: 'false | false | false |
 | infracost-api-key | Infracost API key | N/A | false |
 | stack | The stack name for the given component. | N/A | true |

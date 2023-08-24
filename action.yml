@@ -34,6 +34,10 @@ inputs:
     description: "AWS region for assuming identity."
     required: false
     default: "us-east-1"
+  default-branch:
+    description: The default branch to use for the base ref.
+    required: false
+    default: ${{ github.event.repository.default_branch }}
   atmos-version:
     description: "Atmos version to use for vendoring. Default 'latest'"
     required: false
@@ -73,6 +77,8 @@ runs:
   steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.default-branch }}
 
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2

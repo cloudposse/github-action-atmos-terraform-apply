@@ -58,6 +58,10 @@ templates:
       ```
 
     </details>
+  branding: |
+    {{- if ne .Vars.logo "" }}
+    ![Logo]({{.Vars.logo}})
+    {{- end }}
 terraform:
   apply:
     template: |
@@ -69,6 +73,7 @@ terraform:
       {{if ne .Vars.infracost_details_diff_breakdown ""}}
       {{template "infracost" .}}
       {{end}}
+      {{template "branding" .}}
     when_parse_error:
       template: |
         {{template "apply_title" .}}

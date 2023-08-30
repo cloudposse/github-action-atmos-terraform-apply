@@ -7,6 +7,8 @@
 | atmos-config-path | The path to the atmos.yaml file | atmos.yaml | false |
 | atmos-version | Atmos version to use for vendoring. Default 'latest' | latest | false |
 | aws-region | AWS region for assuming identity. | us-east-1 | false |
+| branding-logo-image | Branding logo image url | https://cloudposse.com/logo-300x69.svg | false |
+| branding-logo-url | Branding logo url | https://cloudposse.com/ | false |
 | commit-sha | Commit SHA to apply. Default: github.sha | ${{ github.sha }} | true |
 | component | The name of the component to apply. | N/A | true |
 | component-path | The path to the base component. Atmos defines this value as component\_path. | N/A | true |

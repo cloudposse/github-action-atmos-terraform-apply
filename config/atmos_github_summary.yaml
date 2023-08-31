@@ -11,23 +11,19 @@ ci:
 templates:
   apply_title: |
     {{ if eq .ExitCode 1}}
-    {{template "apply_error" .}}
+    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`
     {{ end }}
     {{- if eq .ExitCode 0}}
-    {{template "apply_success" .}}
+    ## Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
     {{ end }}
 
-  apply_error: |
-    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`
-    
+  badge: |
+    {{ if eq .ExitCode 1}}
     [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply-{{.Vars.stack}}-{{.Vars.component}}) 
-
-  apply_success: |
-    ## Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
-    
+    {{ end }}
+    {{- if eq .ExitCode 0}}
     [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply-{{.Vars.stack}}-{{.Vars.component}})
-
-    {{template "result" .}}
+    {{ end }}
 
   result: |
     <details><summary><a id="result-{{.Vars.stack}}-{{.Vars.component}}" />{{if .Result}}{{ .Result }}{{end}}</summary>
@@ -66,6 +62,9 @@ terraform:
   apply:
     template: |
       {{template "apply_title" .}}
+      {{template "branding" .}}
+      {{template "badge" .}}
+      {{template "result" .}}
 
       <details><summary><a id="apply-{{.Vars.stack}}-{{.Vars.component}}" />Terraform <strong>Apply</strong> Summary</summary>
       {{wrapCode .CombinedOutput}}
@@ -73,7 +72,6 @@ terraform:
       {{if ne .Vars.infracost_details_diff_breakdown ""}}
       {{template "infracost" .}}
       {{end}}
-      {{template "branding" .}}
     when_parse_error:
       template: |
         {{template "apply_title" .}}

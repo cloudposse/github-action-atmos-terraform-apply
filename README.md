@@ -130,8 +130,12 @@ this action. For more on setting up those components, see the `gitops` component
 
 | Name | Description | Default | Required |
 |------|-------------|---------|----------|
+| atmos-config-path | The path to the atmos.yaml file | atmos.yaml | false |
 | atmos-version | Atmos version to use for vendoring. Default 'latest' | latest | false |
 | aws-region | AWS region for assuming identity. | us-east-1 | false |
+| branding-logo-image | Branding logo image url | https://cloudposse.com/logo-300x69.svg | false |
+| branding-logo-url | Branding logo url | https://cloudposse.com/ | false |
+| commit-sha | Commit SHA to apply. Default: github.sha | ${{ github.sha }} | true |
 | component | The name of the component to apply. | N/A | true |
 | component-path | The path to the base component. Atmos defines this value as component\_path. | N/A | true |
 | debug | Enable action debug mode. Default: 'false' | false | false |
@@ -146,6 +150,11 @@ this action. For more on setting up those components, see the `gitops` component
 | token | Used to pull node distributions for Atmos from Cloud Posse's GitHub repository. Since there's a default, this is typically not supplied by the user. When running this action on github.com, the default value is sufficient. When running on GHES, you can pass a personal access token for github.com if you are experiencing rate limiting. | ${{ github.server\_url == 'https://github.com' && github.token \|\| '' }} | false |
 
 
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| status | Apply Status. Either 'succeeded' or 'failed' |
 <!-- markdownlint-restore -->
 
 

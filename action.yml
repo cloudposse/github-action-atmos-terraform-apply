@@ -178,7 +178,6 @@ runs:
         stack: ${{ inputs.stack }}
         tableName: ${{ inputs.terraform-state-table }}
         bucketName: ${{ inputs.terraform-state-bucket }}
-        failOnMissingPlan: "true"
 
     - name: Retrieve Lockfile
       if: env.ACTIONS_ENABLED == 'true'
@@ -192,7 +191,6 @@ runs:
         stack: "${{ inputs.stack }}-lockfile"
         tableName: ${{ inputs.terraform-state-table }}
         bucketName: ${{ inputs.terraform-state-bucket }}
-        failOnMissingPlan: "true"
 
     - name: Configure AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'

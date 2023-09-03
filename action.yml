@@ -14,10 +14,10 @@ inputs:
   component-path:
     description: "The path to the base component. Atmos defines this value as component_path."
     required: true
-  commit-sha:
+  sha:
     description: "Commit SHA to apply. Default: github.sha"
     required: true
-    default: "${{ github.sha }}"
+    default: "${{ github.event.pull_request.head.sha }}"
   terraform-apply-role:
     description: "The AWS role to be used to apply Terraform."
     required: true
@@ -173,7 +173,7 @@ runs:
       with:
         action: getPlan
         planPath: ${{ steps.vars.outputs.plan_file }}
-        commitSHA: ${{ inputs.commit-sha }}
+        commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
         tableName: ${{ inputs.terraform-state-table }}
@@ -186,7 +186,7 @@ runs:
       with:
         action: getPlan
         planPath: ${{ steps.vars.outputs.lock_file }}
-        commitSHA: ${{ inputs.commit-sha }}
+        commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
         tableName: ${{ inputs.terraform-state-table }}

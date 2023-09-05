@@ -167,7 +167,7 @@ runs:
 
     - name: Retrieve Plan
       if: env.ACTIONS_ENABLED == 'true'
-      uses: cloudposse/github-action-terraform-plan-storage@respect-commit-sha-if-provided
+      uses: cloudposse/github-action-terraform-plan-storage@v1
       id: retrieve-plan
       continue-on-error: true
       with:
@@ -181,7 +181,7 @@ runs:
 
     - name: Retrieve Lockfile
       if: env.ACTIONS_ENABLED == 'true'
-      uses: cloudposse/github-action-terraform-plan-storage@respect-commit-sha-if-provided
+      uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
       with:
         action: getPlan

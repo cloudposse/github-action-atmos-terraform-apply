@@ -14,10 +14,10 @@ inputs:
   component-path:
     description: "The path to the base component. Atmos defines this value as component_path."
     required: true
-  commit-sha:
+  sha:
     description: "Commit SHA to apply. Default: github.sha"
     required: true
-    default: "${{ github.sha }}"
+    default: "${{ github.event.pull_request.head.sha }}"
   terraform-apply-role:
     description: "The AWS role to be used to apply Terraform."
     required: true
@@ -147,7 +147,7 @@ runs:
         STACK_NAME=$(echo "${{ inputs.stack }}" | sed 's#/#_#g')
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
-        PLAN_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/$COMPONENT_SLUG-${{ github.sha }}.planfile"
+        PLAN_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         LOCK_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/.terraform.lock.hcl"
 
         echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
@@ -173,7 +173,7 @@ runs:
       with:
         action: getPlan
         planPath: ${{ steps.vars.outputs.plan_file }}
-        commitSHA: ${{ inputs.commit-sha }}
+        commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
         tableName: ${{ inputs.terraform-state-table }}
@@ -186,13 +186,13 @@ runs:
       with:
         action: getPlan
         planPath: ${{ steps.vars.outputs.lock_file }}
-        commitSHA: ${{ inputs.commit-sha }}
+        commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
         tableName: ${{ inputs.terraform-state-table }}
         bucketName: ${{ inputs.terraform-state-bucket }}
 
-    - name: Configure Apply AWS Credentials
+    - name: Configure AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v2.2.0
       with:

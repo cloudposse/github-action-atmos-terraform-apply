@@ -121,6 +121,8 @@ runs:
         echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
         echo "INFRACOST_ENABLED=false" >> $GITHUB_ENV
 
+        terraform version
+
     - name: Check If GitHub Actions is Enabled For Component
       shell: bash
       run: |
@@ -210,6 +212,7 @@ runs:
       id: atmos-init
       shell: bash
       run: |
+        terraform version
         atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
 
     - name: Check Whether Infracost is Enabled
@@ -274,6 +277,8 @@ runs:
       continue-on-error: true
       run: |
         cd ${{ inputs.component-path }}
+
+        terraform version
 
         EXIT_CODE=0
 

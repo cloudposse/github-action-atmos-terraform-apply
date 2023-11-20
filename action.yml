@@ -82,6 +82,12 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Set vars
+      shell: bash
+      run: |-
+        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{inputs.atmos-config-path}})" >> $GITHUB_ENV
+        echo "ATMOS_BASE_PATH=${{ github.workspace }}" >> $GITHUB_ENV    
+
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -95,8 +101,6 @@ runs:
 
     - name: Install Atmos
       uses: cloudposse/github-action-setup-atmos@v1
-      env:
-       ATMOS_CLI_CONFIG_PATH: ${{inputs.atmos-config-path}}
       with:
         atmos-version: ${{ inputs.atmos-version }}
         token: ${{ inputs.token }}
@@ -206,7 +210,7 @@ runs:
       id: atmos-init
       shell: bash
       run: |
-        ATMOS_BASE_PATH=$GITHUB_WORKSPACE atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
+        atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
 
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true'

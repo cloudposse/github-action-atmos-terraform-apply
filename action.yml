@@ -131,14 +131,16 @@ runs:
         else
           echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
         fi
-
+        terraform version
+        
     - name: Update Global Path for tfcmt
       if: env.ACTIONS_ENABLED == 'true'
       shell: bash
       run: |
         # setup-tfcmt requires this PATH update when running on self-hosted (amazon linux) https://github.com/shmokmt/actions-setup-tfcmt/blob/main/action.yml#L11C1-L12C1
         echo "/usr/local/bin" >> $GITHUB_PATH
-
+        terraform version
+        
     - name: Install tfcmt
       if: env.ACTIONS_ENABLED == 'true'
       uses: shmokmt/actions-setup-tfcmt@v2
@@ -161,7 +163,8 @@ runs:
         echo "component_slug=$COMPONENT_SLUG" >> $GITHUB_OUTPUT
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
-
+        terraform version
+        
     - name: Configure State AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v2.2.0

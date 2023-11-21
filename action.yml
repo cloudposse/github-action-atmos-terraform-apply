@@ -130,18 +130,12 @@ runs:
           echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
         fi
 
-    - name: Update Global Path for tfcmt
-      if: env.ACTIONS_ENABLED == 'true'
-      shell: bash
-      run: |
-        # setup-tfcmt requires this PATH update when running on self-hosted (amazon linux) https://github.com/shmokmt/actions-setup-tfcmt/blob/main/action.yml#L11C1-L12C1
-        echo "/usr/local/bin" >> $GITHUB_PATH
-
     - name: Install tfcmt
-      if: env.ACTIONS_ENABLED == 'true'
-      uses: shmokmt/actions-setup-tfcmt@v2
+      if: env.ACTIONS_ENABLED == 'true'    
+      uses: jaxxstorm/action-install-gh-release@v1.10.0
       with:
-        version: v4.4.1
+        repo: suzuki-shunsuke/tfcmt
+        tag: v4.6.0
 
     - name: Define Job Variables
       if: env.ACTIONS_ENABLED == 'true'

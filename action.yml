@@ -131,10 +131,11 @@ runs:
         fi
 
     - name: Install tfcmt
-      if: env.ACTIONS_ENABLED == 'true'
-      uses: shmokmt/actions-setup-tfcmt@v2
+      if: env.ACTIONS_ENABLED == 'true'    
+      uses: jaxxstorm/action-install-gh-release@v1.10.0
       with:
-        version: v4.6.0
+        repo: suzuki-shunsuke/tfcmt
+        tag: v4.6.0
 
     - name: Define Job Variables
       if: env.ACTIONS_ENABLED == 'true'

@@ -9,12 +9,12 @@
 | aws-region | AWS region for assuming identity. | us-east-1 | false |
 | branding-logo-image | Branding logo image url | https://cloudposse.com/logo-300x69.svg | false |
 | branding-logo-url | Branding logo url | https://cloudposse.com/ | false |
-| commit-sha | Commit SHA to apply. Default: github.sha | ${{ github.sha }} | true |
 | component | The name of the component to apply. | N/A | true |
 | component-path | The path to the base component. Atmos defines this value as component\_path. | N/A | true |
 | debug | Enable action debug mode. Default: 'false' | false | false |
 | enable-infracost | Whether to enable infracost summary. Requires secret `infracost-api-key` to be specified. Default: 'false | false | false |
 | infracost-api-key | Infracost API key | N/A | false |
+| sha | Commit SHA to apply. Default: github.sha | ${{ github.event.pull\_request.head.sha }} | true |
 | stack | The stack name for the given component. | N/A | true |
 | terraform-apply-role | The AWS role to be used to apply Terraform. | N/A | true |
 | terraform-state-bucket | The S3 Bucket where the planfiles are stored. | N/A | true |

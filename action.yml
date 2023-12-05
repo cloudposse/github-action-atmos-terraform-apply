@@ -162,7 +162,7 @@ runs:
       uses: aws-actions/configure-aws-credentials@v2.2.0
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
-        role-to-assume: ${{ steps.config.outputs.terraform-plan-role }}
+        role-to-assume: ${{ steps.config.outputs.terraform-state-role }}
         role-session-name: "atmos-terraform-state-gitops"
         mask-aws-account-id: "no"
 

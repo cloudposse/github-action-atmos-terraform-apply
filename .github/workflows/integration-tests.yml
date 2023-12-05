@@ -50,7 +50,7 @@ jobs:
 
       - shell: bash
         run: |
-          sleep 15;
+          sleep 30;
           
           mkdir -p ${{ runner.temp }}
           cat > ${{ runner.temp }}/atmos-gitops.yaml <<EOL

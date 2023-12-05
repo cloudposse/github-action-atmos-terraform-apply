@@ -50,6 +50,8 @@ jobs:
 
       - shell: bash
         run: |
+          sleep 15;
+          
           mkdir -p ${{ runner.temp }}
           cat > ${{ runner.temp }}/atmos-gitops.yaml <<EOL
           atmos-version: 1.45.3

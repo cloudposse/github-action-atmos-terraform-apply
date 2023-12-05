@@ -11,45 +11,14 @@ inputs:
   stack:
     description: "The stack name for the given component."
     required: true
-  component-path:
-    description: "The path to the base component. Atmos defines this value as component_path."
-    required: true
   sha:
     description: "Commit SHA to apply. Default: github.sha"
     required: true
     default: "${{ github.event.pull_request.head.sha }}"
-  terraform-apply-role:
-    description: "The AWS role to be used to apply Terraform."
-    required: true
-  terraform-state-role:
-    description: "The AWS role to be used to retrieve the planfile from AWS."
-    required: true
-  terraform-state-bucket:
-    description: "The S3 Bucket where the planfiles are stored."
-    required: true
-  terraform-state-table:
-    description: "The DynamoDB table where planfile metadata is stored."
-    required: true
-  aws-region:
-    description: "AWS region for assuming identity."
+  atmos-gitops-config-path:
+    description: The path to the atmos-gitops.yaml file
     required: false
-    default: "us-east-1"
-  atmos-version:
-    description: "Atmos version to use for vendoring. Default 'latest'"
-    required: false
-    default: 'latest'
-  atmos-config-path:
-    description: "The path to the atmos.yaml file"
-    required: false
-    default: atmos.yaml
-  terraform-version:
-    description: 'The version of Terraform CLI to install. Instead of full version string you can also specify constraint string starting with "<" (for example `<1.13.0`) to install the latest version satisfying the constraint. A value of `latest` will install the latest version of Terraform CLI. Defaults to `latest`.'
-    default: 'latest'
-    required: false
-  enable-infracost:
-    description: "Whether to enable infracost summary. Requires secret `infracost-api-key` to be specified. Default: 'false"
-    default: 'false'
-    required: false
+    default: ./.github/config/atmos-gitops.yaml
   infracost-api-key:
     description: "Infracost API key"
     required: false
@@ -82,16 +51,23 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Set vars
+    - name: config
+      uses: blablacar/action-config-levels@dc8ddbca36875e29f870e53bcc1160b7000ff5b2
+      id: config
+      with:
+        output_properties: true
+        patterns: |
+          - ${{ inputs.atmos-gitops-config-path }}
+
+    - name: Set atmos cli config path vars
       shell: bash
       run: |-
-        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{inputs.atmos-config-path}})" >> $GITHUB_ENV
-        echo "ATMOS_BASE_PATH=${{ github.workspace }}" >> $GITHUB_ENV    
+        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ steps.config.outputs.atmos-config-path }})" >> $GITHUB_ENV
 
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: ${{ inputs.terraform-version }}
+        terraform_version: ${{ steps.config.outputs.terraform-version }}
         terraform_wrapper: false
 
     - name: Install Node
@@ -102,17 +78,17 @@ runs:
     - name: Install Atmos
       uses: cloudposse/github-action-setup-atmos@v1
       with:
-        atmos-version: ${{ inputs.atmos-version }}
+        atmos-version: ${{ steps.config.outputs.atmos-version }}
         token: ${{ inputs.token }}
         install-wrapper: false
 
     - name: Filter Atmos Settings Value
-      uses: cloudposse/github-action-atmos-get-setting@v0
-      id: atmos-settings
+      uses: cloudposse/github-action-atmos-get-setting@retrive-general-settings
+      id: atmos-github-actions-enabled
       with:
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
-        settings-path: github.actions_enabled
+        settings-path: settings.github.actions_enabled
 
     - name: Define Job Control State Variables
       shell: bash
@@ -124,11 +100,36 @@ runs:
     - name: Check If GitHub Actions is Enabled For Component
       shell: bash
       run: |
-        if [[ "${{ steps.atmos-settings.outputs.value }}" == "true" ]]; then
+        if [[ "${{ steps.atmos-github-actions-enabled.outputs.value }}" == "true" ]]; then
           echo "ACTIONS_ENABLED=true" >> $GITHUB_ENV
         else
           echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
         fi
+
+    - name: Find component path
+      if: env.ACTIONS_ENABLED == 'true'
+      uses: cloudposse/github-action-atmos-get-setting@retrive-general-settings
+      id: component-path
+      with:
+        component: ${{ inputs.component }}
+        stack: ${{ inputs.stack }}
+        settings-path: component_info.component_path
+
+    - name: Find atmos cli base path
+      if: env.ACTIONS_ENABLED == 'true'
+      uses: cloudposse/github-action-atmos-get-setting@retrive-general-settings
+      id: base-path
+      with:
+        component: ${{ inputs.component }}
+        stack: ${{ inputs.stack }}
+        settings-path: atmos_cli_config.base_path
+
+    - name: Set atmos cli base path vars
+      if: env.ACTIONS_ENABLED == 'true'
+      shell: bash
+      run: |-
+        # Set ATMOS_BASE_PATH allow `cloudposse/utils` provider to read atmos config from the correct path 
+        echo "ATMOS_BASE_PATH=$(realpath ${{ steps.base-path.outputs.value }})" >> $GITHUB_ENV
 
     - name: Install tfcmt
       if: env.ACTIONS_ENABLED == 'true'    
@@ -143,14 +144,16 @@ runs:
       shell: bash
       run: |
         STACK_NAME=$(echo "${{ inputs.stack }}" | sed 's#/#_#g')
+        COMPONENT_PATH=${{ steps.component-path.outputs.value }}
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
-        PLAN_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
-        LOCK_FILE="$GITHUB_WORKSPACE/${{ inputs.component-path}}/.terraform.lock.hcl"
+        PLAN_FILE="$( realpath ${COMPONENT_PATH})/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
+        LOCK_FILE="$( realpath ${COMPONENT_PATH})/.terraform.lock.hcl"
 
         echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
         echo "component_name=$COMPONENT_NAME" >> $GITHUB_OUTPUT
         echo "component_slug=$COMPONENT_SLUG" >> $GITHUB_OUTPUT
+        echo "component_path=${COMPONENT_PATH}" >> $GITHUB_OUTPUT
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
@@ -158,8 +161,8 @@ runs:
       if: env.ACTIONS_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v2.2.0
       with:
-        aws-region: ${{ inputs.aws-region }}
-        role-to-assume: ${{ inputs.terraform-state-role }}
+        aws-region: ${{ steps.config.outputs.aws-region }}
+        role-to-assume: ${{ steps.config.outputs.terraform-plan-role }}
         role-session-name: "atmos-terraform-state-gitops"
         mask-aws-account-id: "no"
 
@@ -174,8 +177,8 @@ runs:
         commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
-        tableName: ${{ inputs.terraform-state-table }}
-        bucketName: ${{ inputs.terraform-state-bucket }}
+        tableName: ${{ steps.config.outputs.terraform-state-table }}
+        bucketName: ${{ steps.config.outputs.terraform-state-bucket }}
 
     - name: Retrieve Lockfile
       if: env.ACTIONS_ENABLED == 'true'
@@ -187,15 +190,15 @@ runs:
         commitSHA: ${{ inputs.sha }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
-        tableName: ${{ inputs.terraform-state-table }}
-        bucketName: ${{ inputs.terraform-state-bucket }}
+        tableName: ${{ steps.config.outputs.terraform-state-table }}
+        bucketName: ${{ steps.config.outputs.terraform-state-bucket }}
 
     - name: Configure AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
       uses: aws-actions/configure-aws-credentials@v2.2.0
       with:
-        aws-region: ${{ inputs.aws-region }}
-        role-to-assume: ${{ inputs.terraform-apply-role }}
+        aws-region: ${{ steps.config.outputs.aws-region }}
+        role-to-assume: ${{ steps.config.outputs.terraform-apply-role }}
         role-session-name: "atmos-terraform-apply-gitops"
         mask-aws-account-id: "no"
 
@@ -210,7 +213,7 @@ runs:
       if: env.ACTIONS_ENABLED == 'true'
       shell: bash
       run: |
-        if [[ "${{ inputs.enable-infracost }}" == "true" ]]; then
+        if [[ "${{ steps.config.outputs.enable-infracost }}" == "true" ]]; then
           echo "INFRACOST_ENABLED=true" >> $GITHUB_ENV
         else
           echo "INFRACOST_ENABLED=false" >> $GITHUB_ENV
@@ -250,7 +253,7 @@ runs:
       id: infracost-diff
       shell: bash
       run: |
-        if [[ "${{ inputs.enable-infracost }}" == "true" ]]; then
+        if [[ "${{ steps.config.outputs.enable-infracost }}" == "true" ]]; then
           INFRACOST_DIFF_TOTAL_MONTHLY_COST=$(cat /tmp/infracost.json | jq --raw-output .diffTotalMonthlyCost)
           INFRACOST_DETAILS_DIFF_BREAKDOWN="$(cat /tmp/infracost.txt | base64 --wrap 0)"
         else
@@ -266,9 +269,8 @@ runs:
       id: apply
       shell: bash
       continue-on-error: true
+      working-directory: ./${{ steps.vars.outputs.component_path }}
       run: |
-        cd ${{ inputs.component-path }}
-
         EXIT_CODE=0
 
         tfcmt \

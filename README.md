@@ -85,7 +85,7 @@ this action. For more on setting up those components, see the `gitops` component
 
 ### Config
 
-The action expects the atmos gitops configuration file to be present in the repository in `./.github/atmos-gitops.yaml`.
+The action expects the atmos gitops configuration file to be present in the repository in `./.github/config/atmos-gitops.yaml`.
 The config should have the following structure:
 
 ```yaml
@@ -136,7 +136,7 @@ The config should have the following structure:
 
 `v2` drop `component-path` variable. Now it fetches from `atmos.yaml` file automatically.
 
-`v2` moved variables from `inputs` to atmos gitops config path `./.github/atmos-gitops.yaml`
+`v2` moved variables from `inputs` to atmos gitops config path `./.github/config/atmos-gitops.yaml`
 
 |         name             |
 |--------------------------|
@@ -152,13 +152,13 @@ The config should have the following structure:
 | `enable-infracost`       |
 
 
-If you want `v2` having the same behaviour as `v1` you should create config `./.github/atmos-gitops.yaml` with the same variables as in `v1` inputs.
+If you want `v2` having the same behaviour as `v1` you should create config `./.github/config/atmos-gitops.yaml` with the same variables as in `v1` inputs.
 
 ```yaml
   - name: Terraform apply
     uses: cloudposse/github-action-atmos-terraform-apply@v2
     with:
-      atmos-gitops-config-path: ./.github/atmos-gitops.yaml
+      atmos-gitops-config-path: ./.github/config/atmos-gitops.yaml
       component: "foobar"
       stack: "plat-ue2-sandbox"
 ```

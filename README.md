@@ -132,7 +132,7 @@ The config should have the following structure:
             stack: "plat-ue2-sandbox"
 ```
 
-### Migrate from `v1` to `v2`
+### Migrating from `v1` to `v2`
 
 `v2` drop `component-path` variable. Now it fetches from `atmos.yaml` file automatically.
 
@@ -152,7 +152,7 @@ The config should have the following structure:
 | `enable-infracost`       |
 
 
-If you want `v2` having the same behaviour as `v1` you should create config `./.github/config/atmos-gitops.yaml` with the same variables as in `v1` inputs.
+If you want the same behavior in `v2`  as in`v1` you should create config `./.github/config/atmos-gitops.yaml` with the same variables as in `v1` inputs.
 
 ```yaml
   - name: Terraform apply

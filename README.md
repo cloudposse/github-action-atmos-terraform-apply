@@ -92,7 +92,7 @@ The config should have the following structure:
 In this example, the action is triggered when certain events occur, such as a manual workflow dispatch or the opening, synchronization, or reopening of a pull request, specifically on the main branch. It specifies specific permissions related to assuming roles in AWS. Within the "apply" job, the "component" and "stack" are hardcoded (`foobar` and `plat-ue2-sandbox`). In practice, these are usually derived from another action. 
 
 > [!TIP] 
-We recommend combining this action with the [`affected-stacks`](/integrations/github-actions/affected-stacks) GitHub Action inside a matrix to plan all affected stacks in parallel.
+We recommend combining this action with the [`affected-stacks`](https://atmos.tools/integrations/github-actions/affected-stacks) GitHub Action inside a matrix to plan all affected stacks in parallel.
 
 ```yaml
   name: "atmos-terraform-apply"

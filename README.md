@@ -1,13 +1,10 @@
 
 <!-- markdownlint-disable -->
-# github-action-atmos-terraform-apply
+# github-action-atmos-terraform-apply<a href="https://cpco.io/homepage"><img align="right" src="https://cloudposse.com/logo-300x69.svg" width="150" /></a>
 
  [![Latest Release](https://img.shields.io/github/release/cloudposse/github-action-atmos-terraform-apply.svg)](https://github.com/cloudposse/github-action-atmos-terraform-apply/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
 <!-- markdownlint-restore -->
 
-[![README Header][readme_header_img]][readme_header_link]
-
-[![Cloud Posse][logo]](https://cpco.io/homepage)
 
 <!--
 
@@ -33,18 +30,13 @@
 This Github Action is used to run Terraform apply for a single, Atmos-supported component with a saved planfile in S3 and DynamoDB.
 
 ---
+> [!NOTE]
+> This project is part of Cloud Posse's comprehensive ["SweetOps"](https://cpco.io/sweetops) approach towards DevOps.
+>
+> It's 100% Open Source and licensed under the [APACHE2](LICENSE).
+>
 
-This project is part of our comprehensive ["SweetOps"](https://cpco.io/sweetops) approach towards DevOps.
-
-
-It's 100% Open Source and licensed under the [APACHE2](LICENSE).
-
-
-
-
-
-
-
+[![README Header][readme_header_img]][readme_header_link]
 
 
 
@@ -55,6 +47,8 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 This Github Action is used to run Terraform apply for a single, Atmos-supported component with a saved planfile in S3 and DynamoDB.
 
 Before running this action, first create and store a planfile with the companion action, [github-action-atmos-terraform-plan](https://github.com/cloudposse/github-action-atmos-terraform-plan).
+
+For more, see [Atmos GitHub Action Integrations](https://atmos.tools/integrations/github-actions/atmos-terraform-apply)
 
 
 
@@ -95,6 +89,11 @@ The config should have the following structure:
 
 ### Workflow example
 
+In this example, the action is triggered when certain events occur, such as a manual workflow dispatch or the opening, synchronization, or reopening of a pull request, specifically on the main branch. It specifies specific permissions related to assuming roles in AWS. Within the "apply" job, the "component" and "stack" are hardcoded (`foobar` and `plat-ue2-sandbox`). In practice, these are usually derived from another action. 
+
+> [!TIP] 
+We recommend combining this action with the [`affected-stacks`](https://atmos.tools/integrations/github-actions/affected-stacks) GitHub Action inside a matrix to plan all affected stacks in parallel.
+
 ```yaml
   name: "atmos-terraform-apply"
 
@@ -112,7 +111,7 @@ The config should have the following structure:
     contents: read
 
   jobs:
-    plan:
+    apply:
       runs-on: ubuntu-latest
       steps:
         - name: Terraform Apply
@@ -124,8 +123,9 @@ The config should have the following structure:
 
 ### Migrating from `v1` to `v2`
 
-1.   `v2` drops the `component-path` variable and instead fetches if directly from the [`atmos.yaml` file](https://atmos.tools/cli/configuration/) automatically. Simply remove the `component-path` argument from your invocations of the `cloudposse/github-action-atmos-terraform-apply` action.
-2.  `v2` moves most of the `inputs` to the Atmos GitOps config path `./.github/config/atmos-gitops.yaml`. Simply create this file, transfer your settings to it, then remove the corresponding arguments from your invocations of the `cloudposse/github-action-atmos-terraform-apply` action.
+1. `v2` drops the `component-path` variable and instead fetches if directly from the [`atmos.yaml` file](https://atmos.tools/cli/configuration/) automatically. Simply remove the `component-path` argument from your invocations of the `cloudposse/github-action-atmos-terraform-apply` action.
+2. `v2` moves most of the `inputs` to the Atmos GitOps config path `./.github/config/atmos-gitops.yaml`. Simply create this file, transfer your settings to it, then remove the corresponding arguments from your invocations of the `cloudposse/github-action-atmos-terraform-apply` action.
+
 |         name             |
 |--------------------------|
 | `atmos-version`          |
@@ -143,28 +143,28 @@ The config should have the following structure:
 If you want the same behavior in `v2` as in `v1` you should create config `./.github/config/atmos-gitops.yaml` with the same variables as in `v1` inputs.
 
 ```yaml
-  - name: Terraform apply
-    uses: cloudposse/github-action-atmos-terraform-apply@v2
-    with:
-      atmos-gitops-config-path: ./.github/config/atmos-gitops.yaml
-      component: "foobar"
-      stack: "plat-ue2-sandbox"
+- name: Terraform apply
+  uses: cloudposse/github-action-atmos-terraform-apply@v2
+  with:
+    atmos-gitops-config-path: ./.github/config/atmos-gitops.yaml
+    component: "foobar"
+    stack: "plat-ue2-sandbox"
 ```
 
 Which would produce the same behavior as in `v1`, doing this:
 
 ```yaml
-  - name: Terraform apply
-    uses: cloudposse/github-action-atmos-terraform-apply@v1
-    with:
-      component: "foobar"
-      stack: "plat-ue2-sandbox"
-      component-path: "components/terraform/s3-bucket"
-      terraform-apply-role: "arn:aws:iam::111111111111:role/acme-core-gbl-identity-gitops"
-      terraform-state-bucket: "acme-core-ue2-auto-gitops"
-      terraform-state-role: "arn:aws:iam::999999999999:role/acme-core-ue2-auto-gitops-gha"
-      terraform-state-table: "acme-core-ue2-auto-gitops"
-      aws-region: "us-east-2"
+- name: Terraform apply
+  uses: cloudposse/github-action-atmos-terraform-apply@v1
+  with:
+    component: "foobar"
+    stack: "plat-ue2-sandbox"
+    component-path: "components/terraform/s3-bucket"
+    terraform-apply-role: "arn:aws:iam::111111111111:role/acme-core-gbl-identity-gitops"
+    terraform-state-bucket: "acme-core-ue2-auto-gitops"
+    terraform-state-role: "arn:aws:iam::999999999999:role/acme-core-ue2-auto-gitops-gha"
+    terraform-state-table: "acme-core-ue2-auto-gitops"
+    aws-region: "us-east-2"
 ```
 
 
@@ -207,6 +207,7 @@ Check out these related projects.
 
 For additional context, refer to some of these links.
 
+- [github-action-atmos-affected-stacks](https://github.com/cloudposse/github-action-atmos-affected-stacks) - Companion GitHub Action that runs the atmos describe affected command
 - [github-action-atmos-terraform-plan](https://github.com/cloudposse/github-action-atmos-terraform-plan) - Companion GitHub Action to create and store Terraform plans for a given component
 - [github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage) - GitHub Action to store Terraform plans
 
@@ -226,7 +227,7 @@ Please use the [issue tracker](https://github.com/cloudposse/github-action-atmos
 
 ### 💻 Developing
 
-If you are interested in being a contributor and want to get involved in developing this project or [help out](https://cpco.io/help-out) with our other projects, we would love to hear from you! Shoot us an [email][email].
+If you are interested in being a contributor and want to get involved in developing this project or [help out](https://cpco.io/help-out) with Cloud Posse's other projects, we would love to hear from you! Shoot us an [email][email].
 
 In general, PRs are welcome. We follow the typical "fork-and-pull" Git workflow.
 

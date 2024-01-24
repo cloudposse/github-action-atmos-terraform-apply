@@ -292,7 +292,7 @@ runs:
         
         TERRAFORM_OUTPUTS=$(terraform output --json | jq -Mr 'to_entries | map(["|", .key, "|", if .value.sensitive then "<sensitive>" else .value.value end, "|"] | join(" ")) | if length > 0 then ["| name | value |", "|----|----|"] + . else ["No outputs"] end | join("\n")')
         echo "${TERRAFORM_OUTPUTS}"
-        sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS}/" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS}/g" ${{ github.workspace }}/atmos-apply-summary.md
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 

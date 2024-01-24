@@ -291,7 +291,7 @@ runs:
           apply -- terraform apply ${{ steps.vars.outputs.plan_file }} || EXIT_CODE=$?
         
         TERRAFORM_OUTPUTS=$(terraform output --json | jq -Mr 'to_entries | map(["|", .key, "|", if .value.sensitive then "<sensitive>" else .value.value end, "|"] | join(" ")) | if length > 0 then ["| name | value |", "|----|----|"] + . else ["No outputs"] end | join("\n")')
-        sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS//$'\n'/\\n}/g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS//$'\n'/<br/>}/g" ${{ github.workspace }}/atmos-apply-summary.md
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 

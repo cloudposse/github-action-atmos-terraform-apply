@@ -69,6 +69,11 @@ terraform:
       <details><summary><a id="apply-{{.Vars.stack}}-{{.Vars.component}}" />Terraform <strong>Apply</strong> Summary</summary>
       {{wrapCode .CombinedOutput}}
       </details>
+      
+      <details><summary><a id="outputs-{{.Vars.stack}}-{{.Vars.component}}" />Terraform Outputs</summary>
+      %TERRAFORM_OUTPUTS%
+      </details>
+
       {{if ne .Vars.infracost_details_diff_breakdown ""}}
       {{template "infracost" .}}
       {{end}}

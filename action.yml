@@ -290,7 +290,9 @@ runs:
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- terraform apply ${{ steps.vars.outputs.plan_file }} || EXIT_CODE=$?
         
-        TERRAFORM_OUTPUTS=$(terraform output --json | jq -M 'to_entries | map(["|", .key, "|", if .value.sensitive then "![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)" else .value.value end, "|"] | join(" ")) | if length > 0 then ["| name | value |", "|----|----|"] + . else ["No outputs"] end | join("\n")')
+        TERRAFORM_OUTPUTS=$(terraform output --json | \
+          jq -M 'to_entries | map(["|", .key, "|", if .value.sensitive then "![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)" else .value.value end, "|"] | join(" ")) | if length > 0 then ["| name | value |", "|----|----|"] + . else ["No outputs"] end | join("\n")' \
+        )
         sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS}/g" ${{ github.workspace }}/atmos-apply-summary.md
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY

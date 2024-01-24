@@ -296,7 +296,7 @@ runs:
         
         echo "${TERRAFORM_OUTPUTS}"
         
-        sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS}/g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s/%TERRAFORM_OUTPUTS%/${TERRAFORM_OUTPUTS//\//\\/}/g" ${{ github.workspace }}/atmos-apply-summary.md
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 

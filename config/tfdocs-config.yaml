@@ -12,7 +12,7 @@ content: |-
         | Name | Description | Value |
         |------|-------------|-------|
         {{- range .Module.Outputs }}
-            | {{ tostring .Name | sanitizeMarkdownTbl }} | {{ tostring .Description | sanitizeMarkdownTbl }} |
+            | {{ .Name }} | {{ tostring .Description | sanitizeMarkdownTbl }} |
             {{- $sensitive := ternary .Sensitive "<sensitive>" .GetValue -}}
             {{ printf " " }}{{ tostring $sensitive | sanitizeMarkdownTbl }} |
         {{- end }}

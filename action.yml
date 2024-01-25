@@ -299,6 +299,8 @@ runs:
         
         terraform output --json > output_values.json
         
+        terraform-docs --help
+        
         terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml ./
         
         cat ,/output.md

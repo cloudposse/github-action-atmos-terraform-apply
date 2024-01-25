@@ -301,6 +301,57 @@ specific language governing permissions and limitations
 under the License.
 ```
 
+
+## Apply Succeeded for `foobar` in `plat-ue2-sandbox`
+
+
+
+<a href="https://cloudposse.com/"><img src="https://cloudposse.com/logo-300x69.svg" width="100px" align="right"/></a>
+
+
+[![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply-plat-ue2-sandbox-foobar)
+
+
+<details><summary><a id="result-plat-ue2-sandbox-foobar" />Apply complete! Resources: 1 added, 0 changed, 1 destroyed.</summary>
+
+<br/>
+To reproduce this locally, run:<br/><br/>
+
+```shell
+atmos terraform apply foobar -s plat-ue2-sandbox
+```
+</details>
+
+
+<details><summary><a id="apply-plat-ue2-sandbox-foobar" />Terraform <strong>Apply</strong> Summary</summary>
+
+```hcl
+random_id.foo: Destroying... [id=oIE_s3bSF9A]
+random_id.foo: Destruction complete after 0s
+random_id.foo: Creating...
+random_id.foo: Creation complete after 0s [id=WGAQulCR148]
+
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
+
+Outputs:
+
+result = "WGAQulCR148"
+sensitive_value = <sensitive>
+
+```
+
+</details>
+
+<details><summary><a id="outputs-plat-ue2-sandbox-foobar" />Terraform Outputs</summary>
+
+| name | value         |
+|----|---------------|
+| result | "WGAQulCR148" |
+| sensitive_value | \<sensitive\> |
+
+</details>
+
+
 ## Trademarks
 
 All other trademarks referenced herein are the property of their respective owners.

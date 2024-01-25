@@ -9,6 +9,7 @@ on:
 env:
   AWS_REGION: us-east-2
 
+
 # Permissions required for assuming AWS identity
 permissions:
   id-token: write
@@ -35,11 +36,12 @@ jobs:
           EOL
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@incapsulate-configs
+        uses: cloudposse/github-action-atmos-terraform-plan@v1
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-gitops-config-path: "${{ runner.temp }}/atmos-gitops.yaml"
+
   test:
     runs-on: ubuntu-latest
     needs: setup

@@ -1,5 +1,9 @@
 formatter: "markdown"
 
+sections:
+  show:
+    - outputs
+
 content: |-
   {{ .Outputs }}
 

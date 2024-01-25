@@ -303,7 +303,7 @@ runs:
         
         terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
         
-        sed -i "s/`<sensitive>`/TEST/" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s/\`<sensitive>\`/TEST/" ${{ github.workspace }}/atmos-apply-summary.md
 
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 

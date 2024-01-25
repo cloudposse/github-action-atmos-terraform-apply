@@ -5,7 +5,9 @@ sections:
     - outputs
 
 content: |-
-  {{ .Outputs }}
+  {{ range .Module.Outputs }}
+  - {{ .Name }}
+  {{- end }}  
 
 output:
   file: "atmos-apply-summary.md"

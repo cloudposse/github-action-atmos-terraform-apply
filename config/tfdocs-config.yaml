@@ -5,27 +5,18 @@ sections:
     - outputs
 
 content: |-
-  {{- if .Config.Sections.Outputs -}}
-      {{- if not .Module.Outputs -}}
-          {{- if not .Config.Settings.HideEmpty -}}
-              {{- indent 0 "#" }} Outputs
-  
-              No outputs.
-          {{ end }}
-      {{ else }}
-          {{- indent 0 "#" }} Outputs
-  
-          | Name | Description |{{ if .Config.OutputValues.Enabled }} Value |{{ end }}
-          |------|-------------|{{ if .Config.OutputValues.Enabled }}-------|{{ end }}
-          {{- range .Module.Outputs }}
-              | {{ anchorNameMarkdown "output" .Name }} | {{ tostring .Description | sanitizeMarkdownTbl }} |
-              {{- if $.Config.OutputValues.Enabled -}}
-                  {{- $sensitive := ternary .Sensitive "<sensitive>" .GetValue -}}
-                  {{ printf " " }}{{ value $sensitive | sanitizeMarkdownTbl }} |
-              {{- end -}}
-          {{- end }}
-      {{ end }}
-  {{ end -}}
+    {{- if not .Module.Outputs -}}
+        No outputs.
+    {{ else }}
+
+        | Name | Description | Value |
+        |------|-------------|-------|
+        {{- range .Module.Outputs }}
+            | {{ tostring .Name | sanitizeMarkdownTbl }} | {{ tostring .Description | sanitizeMarkdownTbl }} |
+            {{- $sensitive := ternary .Sensitive "<sensitive>" .GetValue -}}
+            {{ printf " " }}{{ tostring $sensitive | sanitizeMarkdownTbl }} |
+        {{- end }}
+    {{ end }}
 
 output:
   file: "atmos-apply-summary.md"

@@ -5,18 +5,7 @@ sections:
     - outputs
 
 content: |-
-    {{- if not .Module.Outputs -}}
-    No outputs.
-    {{ else }}
-
-    | Name | Description | Value |
-    |------|-------------|-------|
-    {{- range .Module.Outputs }}
-    | {{ .Name }} | {{ tostring .Description | sanitizeMarkdownTbl }} |
-    {{- $sensitive := ternary .Sensitive "<sensitive>" .GetValue -}}
-    {{ printf " " }}{{ $sensitive | sanitizeMarkdownTbl }} |
-    {{- end }}
-    {{ end }}
+  {{ .Outputs }}
 
 output:
   file: "atmos-apply-summary.md"

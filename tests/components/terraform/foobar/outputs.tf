@@ -8,3 +8,14 @@ output "sensitive_value" {
   value       = random_id.foo.id
   sensitive   = true
 }
+
+
+output "structured_value" {
+  description = "Test structured output"
+  value       = {
+    test = "test"
+    value = {
+      result = random_id.foo.id
+    }
+  }
+}

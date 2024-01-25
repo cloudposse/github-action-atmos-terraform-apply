@@ -72,6 +72,7 @@ terraform:
       
       <details><summary><a id="outputs-{{.Vars.stack}}-{{.Vars.component}}" />Terraform Outputs</summary>
       
+      
       %TERRAFORM_OUTPUTS%
       
       </details>

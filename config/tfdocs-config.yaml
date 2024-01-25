@@ -7,7 +7,7 @@ sections:
 content: |-
   | Name | Description | Value |
   |------|-------------|-------|
-  {{ range .Module.Outputs }}
+  {{- range .Module.Outputs }}
   | {{ .Name }} | {{ .Description }} | {{ .GetValue }} |
   {{- end }}  
 

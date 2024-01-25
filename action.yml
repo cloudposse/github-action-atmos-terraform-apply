@@ -141,6 +141,13 @@ runs:
         repo: suzuki-shunsuke/tfcmt
         tag: v4.6.0
 
+    - name: Install terraform-docs
+      if: env.ACTIONS_ENABLED == 'true'
+      uses: jaxxstorm/action-install-gh-release@v1.10.0
+      with:
+        repo: terraform-docs/terraform-docs
+        tag: v0.17.0
+
     - name: Define Job Variables
       if: env.ACTIONS_ENABLED == 'true'
       id: vars

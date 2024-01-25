@@ -13,11 +13,10 @@ output:
   template: |-
     [//]: # (BEGIN_TF_DOCS)
     {{ .Content }}
-    
     [//]: # (END_TF_DOCS)
 
 output-values:
-  enabled: true
+  enabled: false
   from: "output_values.json"
 
 sort:

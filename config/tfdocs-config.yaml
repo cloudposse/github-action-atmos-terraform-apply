@@ -8,8 +8,8 @@ content: |-
   {{ .Outputs }}
 
 output:
-  file: "output.md"
-  mode: replace
+  file: "atmos-apply-summary.md"
+  mode: inject
   template: |-
     <!-- BEGIN_TF_DOCS -->
     {{ .Content }}

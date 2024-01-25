@@ -299,7 +299,7 @@ runs:
         
         terraform output --json > output_values.json
         
-        # cat "${{ github.workspace }}/atmos-apply-summary.md"
+        cat output_values.json
         
         terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml ./
 

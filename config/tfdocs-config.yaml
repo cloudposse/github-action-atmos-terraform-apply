@@ -8,7 +8,7 @@ content: |-
   | Name | Description | Value |
   |------|-------------|-------|
   {{ range .Module.Outputs }}
-  | {{ .Name }} | {{ .Description }} | {{ .GetValue() }} |
+  | {{ .Name }} | {{ .Description }} | {{ .GetValue }} |
   {{- end }}  
 
 output:

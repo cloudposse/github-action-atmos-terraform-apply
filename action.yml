@@ -299,11 +299,11 @@ runs:
         
         terraform output --json > output_values.json
         
-        cat "${{ github.workspace }}/atmos-apply-summary.md"
+        # cat "${{ github.workspace }}/atmos-apply-summary.md"
         
-        #        terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml ./
-        #        
-        #        cat "${{ github.workspace }}/atmos-apply-summary.md" 
+        terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml ./
+
+        cat "${{ github.workspace }}/atmos-apply-summary.md" 
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 

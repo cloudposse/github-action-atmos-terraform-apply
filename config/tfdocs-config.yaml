@@ -14,7 +14,7 @@ content: |-
     {{- range .Module.Outputs }}
     | {{ .Name }} | {{ tostring .Description | sanitizeMarkdownTbl }} |
     {{- $sensitive := ternary .Sensitive "<sensitive>" .GetValue -}}
-    {{ printf " " }}{{ value .GetValue | sanitizeMarkdownTbl }} |
+    {{ printf " " }}`{{ .GetValue | `sanitizeMarkdownTbl }}` |
     {{- end }}
     {{ end }}
 

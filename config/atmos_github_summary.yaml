@@ -72,7 +72,6 @@ terraform:
       
       <details><summary><a id="outputs-{{.Vars.stack}}-{{.Vars.component}}" />Terraform Outputs</summary>
       
-      
       [//]: # (BEGIN_TF_DOCS)
       [//]: # (END_TF_DOCS)
       

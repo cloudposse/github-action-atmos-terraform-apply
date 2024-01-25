@@ -9,7 +9,7 @@ content: |-
 
 output:
   file: "atmos-apply-summary.md"
-  mode: inject
+  mode: replace
   template: |-
     <!-- BEGIN_TF_DOCS -->
     {{ .Content }}

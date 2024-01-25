@@ -15,7 +15,6 @@ output:
     {{ .Content }}
     <!-- END_TF_DOCS -->
 
-
 output-values:
   enabled: true
   from: "output_values.json"

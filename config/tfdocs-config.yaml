@@ -13,6 +13,7 @@ output:
   template: |-
     [//]: # (BEGIN_TF_DOCS)
     {{ .Content }}
+    
     [//]: # (END_TF_DOCS)
 
 output-values:

@@ -5,8 +5,10 @@ sections:
     - outputs
 
 content: |-
+  | Name | Description | Value |
+  |------|-------------|-------|
   {{ range .Module.Outputs }}
-  - {{ .Name }}
+  | {{ .Name }} | {{ .Description }} | {{ .Value }} |
   {{- end }}  
 
 output:

@@ -301,7 +301,7 @@ runs:
         
         terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml ./
         
-        cat ,/output.md
+        cat ./output.md
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 

@@ -17,7 +17,7 @@ output:
 
 
 output-values:
-  enabled: false
+  enabled: true
   from: "output_values.json"
 
 sort:

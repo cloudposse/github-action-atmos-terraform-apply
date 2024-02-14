@@ -37,7 +37,7 @@ jobs:
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_PLAN_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v1
+        uses: cloudposse/github-action-atmos-terraform-plan@use-atmos-config
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"

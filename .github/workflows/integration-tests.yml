@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - shell: bash
         run: |
@@ -45,31 +47,27 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - shell: bash
         run: |
           mkdir -p ${{ runner.temp }}
-          cat > ${{ runner.temp }}/atmos-gitops.yaml <<EOL
-          atmos-version: 1.45.3
-          atmos-config-path: ./tests/
-          terraform-state-bucket: ${{ secrets.TERRAFORM_STATE_BUCKET }}
-          terraform-state-table: ${{ secrets.TERRAFORM_STATE_TABLE }}
-          terraform-state-role: ${{ secrets.TERRAFORM_STATE_ROLE }}
-          terraform-plan-role: ${{ secrets.TERRAFORM_APPLY_ROLE }}
-          terraform-apply-role: ${{ secrets.TERRAFORM_APPLY_ROLE }}          
-          terraform-version: 1.5.2
-          aws-region: ${{ env.AWS_REGION }}
-          sort-by: .stack_slug
-          group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")          
-          EOL
+          cp ./tests/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_ROLE__#${{ secrets.TERRAFORM_STATE_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_PLAN_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_PLAN_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
       - name: Apply Atmos Component
         uses: ./
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"
-          atmos-gitops-config-path: "${{ runner.temp }}/atmos-gitops.yaml"
+          atmos-config-path: ${{ runner.temp }}
           debug: true

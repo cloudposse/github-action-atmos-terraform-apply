@@ -291,7 +291,7 @@ runs:
         
         pwd
         
-        ls -l ./
+        ls -la ./
 
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \

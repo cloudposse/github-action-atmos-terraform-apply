@@ -139,7 +139,7 @@ runs:
         # Set ATMOS_BASE_PATH allow `cloudposse/utils` provider to read atmos config from the correct path 
         ATMOS_BASE_PATH="${{ steps.base-path.outputs.value }}"
         echo "ATMOS_BASE_PATH=$(realpath ${ATMOS_BASE_PATH:-./})" >> $GITHUB_ENV
-        
+
     - name: Install tfcmt
       if: env.ACTIONS_ENABLED == 'true'    
       uses: jaxxstorm/action-install-gh-release@v1.10.0
@@ -224,7 +224,6 @@ runs:
       shell: bash
       run: |
         atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
-        atmos terraform state ${{ inputs.component }} -s ${{ inputs.stack }} pull | grep lineage
 
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true'
@@ -289,8 +288,6 @@ runs:
       run: |
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
         
-        atmos terraform state ${{ inputs.component }} -s ${{ inputs.stack }} pull | grep lineage
-        
         set +e
         
         tfcmt \
@@ -327,10 +324,10 @@ runs:
         # sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         # sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         # sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
-
+        
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
-
-        if [ $TERRAFORM_RESULT -eq 0 ]; then
+        
+        if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
         else
@@ -340,3 +337,5 @@ runs:
 
         # Link to a job that executed this action
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
+        
+        rm -f ${TERRAFORM_OUTPUT_FILE}

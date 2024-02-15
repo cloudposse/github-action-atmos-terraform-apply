@@ -286,13 +286,9 @@ runs:
       id: apply
       shell: bash
       continue-on-error: true
-      working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
-        EXIT_CODE=0
-        
-        ls -la ./
-        
-        terraform state pull | grep lineage
+        TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
+        set +e
         
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
@@ -306,9 +302,19 @@ runs:
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
           --output "${{ github.workspace }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
-          apply -- terraform apply ${{ steps.vars.outputs.plan_file }} || EXIT_CODE=$?
+          apply-- \
+            atmos terraform apply ${{ inputs.component }} \
+            --stack ${{ inputs.stack }} \
+            -auto-approve \
+            -input=false \
+            -no-color \
+          &> ${TERRAFORM_OUTPUT_FILE}
+
+        TERRAFORM_RESULT=$?
         
-        terraform output --json > output_values.json
+        set -e
+        
+        # terraform output --json > output_values.json
         
         # terraform-docs -c ${{ github.action_path }}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
         
@@ -319,7 +325,7 @@ runs:
 
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 
-        if [ $EXIT_CODE -eq 0 ]; then
+        if [ $TERRAFORM_RESULT -eq 0 ]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
         else

@@ -224,6 +224,7 @@ runs:
       shell: bash
       run: |
         atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
+        atmos terraform state ${{ inputs.component }} -s ${{ inputs.stack }} pull | grep lineage
 
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true'

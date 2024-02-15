@@ -289,8 +289,6 @@ runs:
       run: |
         EXIT_CODE=0
         
-        terraform show ${{ steps.vars.outputs.plan_file }}
-
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \

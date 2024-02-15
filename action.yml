@@ -290,6 +290,8 @@ runs:
       run: |
         EXIT_CODE=0
         
+        ls -la ./
+        
         terraform state pull | grep lineage
         
         tfcmt \

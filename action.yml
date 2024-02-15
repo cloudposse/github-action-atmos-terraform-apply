@@ -116,7 +116,7 @@ runs:
 
     - name: Find component path
       if: env.ACTIONS_ENABLED == 'true'
-      uses: cloudposse/github-action-atmos-get-setting@a5bee0cfe065a99e8f0cad07cd28acca5b130d0b
+      uses: cloudposse/github-action-atmos-get-setting@v1
       id: component-path
       with:
         component: ${{ inputs.component }}
@@ -288,6 +288,10 @@ runs:
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         EXIT_CODE=0
+        
+        pwd
+        
+        ls -l ./
 
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \

@@ -288,6 +288,9 @@ runs:
       continue-on-error: true
       run: |
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
+        
+        atmos terraform state ${{ inputs.component }} -s ${{ inputs.stack }} pull | grep lineage
+        
         set +e
         
         tfcmt \
@@ -313,6 +316,8 @@ runs:
         TERRAFORM_RESULT=$?
         
         set -e
+        
+        cat "${TERRAFORM_OUTPUT_FILE}"
         
         # terraform output --json > output_values.json
         

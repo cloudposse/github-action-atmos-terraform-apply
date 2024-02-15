@@ -123,7 +123,7 @@ We recommend combining this action with the [`affected-stacks`](https://atmos.to
           with:
             component: "foobar"
             stack: "plat-ue2-sandbox"
-            atmos-config-path: ./atmos.yaml
+            atmos-config-path: ./
 ```
 
 ### Migrating from `v1` to `v2`
@@ -191,7 +191,7 @@ integrations:
     with:
       component: "foobar"
       stack: "plat-ue2-sandbox"
-      atmos-config-path: ./atmos.yaml
+      atmos-config-path: ./
       atmos-version: 1.63.0
 ``` 
 

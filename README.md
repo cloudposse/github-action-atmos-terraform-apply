@@ -123,7 +123,7 @@ We recommend combining this action with the [`affected-stacks`](https://atmos.to
           with:
             component: "foobar"
             stack: "plat-ue2-sandbox"
-            atmos-config-path: ./
+            atmos-config-path: ./rootfs/usr/local/etc/atmos/
 ```
 
 ### Migrating from `v1` to `v2`
@@ -160,7 +160,7 @@ The following configuration fields are now moved to `atmos.yaml`
 
 If you want `v2` having the same behaviour as `v1` you should  have 
 
-`atmos.yaml`
+`./.github/config/atmos-gitops.yaml`
 ```yaml
 ...
 
@@ -191,7 +191,7 @@ integrations:
     with:
       component: "foobar"
       stack: "plat-ue2-sandbox"
-      atmos-config-path: ./
+      atmos-config-path: ./rootfs/usr/local/etc/atmos/
       atmos-version: 1.63.0
 ``` 
 

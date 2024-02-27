@@ -281,7 +281,9 @@ runs:
       continue-on-error: true
       working-directory: ./${{ steps.vars.outputs.component_path }}
       run: |
-        EXIT_CODE=0
+        set +e
+        
+        TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
 
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
@@ -295,7 +297,19 @@ runs:
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
           --output "${{ github.workspace }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
-          apply -- terraform apply ${{ steps.vars.outputs.plan_file }} || EXIT_CODE=$?
+          apply -- \
+            atmos terraform apply ${{ inputs.component }} \
+            --stack ${{ inputs.stack }} \
+            -auto-approve \
+            -input=false \
+            -no-color \
+        &> ${TERRAFORM_OUTPUT_FILE}
+        
+        TERRAFORM_RESULT=$?
+
+        set -e
+        
+        cat "${TERRAFORM_OUTPUT_FILE}"
         
         terraform output --json > output_values.json
         
@@ -308,7 +322,7 @@ runs:
 
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 
-        if [ $EXIT_CODE -eq 0 ]; then
+        if [ $TERRAFORM_RESULT -eq 0 ]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
         else
@@ -318,3 +332,7 @@ runs:
 
         # Link to a job that executed this action
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
+        
+        rm -f ${TERRAFORM_OUTPUT_FILE}
+        
+        exit $TERRAFORM_RESULT

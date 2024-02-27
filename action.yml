@@ -300,6 +300,8 @@ runs:
           apply -- \
             atmos terraform apply ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
+            -auto-approve \
+            -input=false \
             -no-color \
         &> ${TERRAFORM_OUTPUT_FILE}
         

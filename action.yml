@@ -231,7 +231,7 @@ runs:
 
     - name: Setup Infracost
       if: env.INFRACOST_ENABLED == 'true'
-      uses: infracost/actions/setup@v2
+      uses: infracost/actions/setup@v3
       with:
         api-key: ${{ inputs.infracost-api-key }}
 

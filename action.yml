@@ -52,7 +52,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set atmos cli config path vars
       shell: bash
@@ -230,7 +230,7 @@ runs:
 
     - name: Setup Infracost
       if: env.INFRACOST_ENABLED == 'true'
-      uses: infracost/actions/setup@v2
+      uses: infracost/actions/setup@v3
       with:
         api-key: ${{ inputs.infracost-api-key }}
 
@@ -277,12 +277,12 @@ runs:
       if: env.ACTIONS_ENABLED == 'true'
       id: apply
       shell: bash
-      continue-on-error: true
+      working-directory: ./${{ steps.vars.outputs.component_path }}
       run: |
-        TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
-        
         set +e
         
+        TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
+
         tfcmt \
           --config "${{ github.action_path }}/config/atmos_github_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
@@ -301,12 +301,12 @@ runs:
             -auto-approve \
             -input=false \
             -no-color \
-          &> ${TERRAFORM_OUTPUT_FILE}
-
+        &> ${TERRAFORM_OUTPUT_FILE}
+        
         TERRAFORM_RESULT=$?
-        
+
         set -e
-        
+                
         cat "${TERRAFORM_OUTPUT_FILE}"
         
         # terraform output --json > output_values.json
@@ -332,3 +332,5 @@ runs:
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
         
         rm -f ${TERRAFORM_OUTPUT_FILE}
+        
+        exit $TERRAFORM_RESULT

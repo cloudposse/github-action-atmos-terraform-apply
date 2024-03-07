@@ -78,7 +78,7 @@ runs:
         node-version: 16
 
     - name: Install Atmos
-      uses: cloudposse/github-action-setup-atmos@v1
+      uses: cloudposse/github-action-setup-atmos@v2
       with:
         atmos-version: ${{ steps.config.outputs.atmos-version }}
         token: ${{ inputs.token }}

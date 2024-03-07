@@ -169,7 +169,7 @@ runs:
 
     - name: Configure State AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
-      uses: aws-actions/configure-aws-credentials@v2.2.0
+      uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
         role-to-assume: ${{ steps.config.outputs.terraform-state-role }}
@@ -205,7 +205,7 @@ runs:
 
     - name: Configure AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
-      uses: aws-actions/configure-aws-credentials@v2.2.0
+      uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
         role-to-assume: ${{ steps.config.outputs.terraform-apply-role }}

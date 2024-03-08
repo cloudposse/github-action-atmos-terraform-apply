@@ -60,7 +60,7 @@ runs:
         echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
 
     - name: Install Atmos
-      uses: cloudposse/github-action-setup-atmos@v1
+      uses: cloudposse/github-action-setup-atmos@v2
       with:
         atmos-version: ${{ inputs.atmos-version }}
         token: ${{ inputs.token }}
@@ -80,15 +80,15 @@ runs:
         echo "terraform-apply-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.apply')" >> $GITHUB_OUTPUT
 
     - name: Install Terraform
-      uses: hashicorp/setup-terraform@v2
+      uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ steps.config.outputs.terraform-version }}
         terraform_wrapper: false
 
     - name: Install Node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: 16
+        node-version: 20
 
     - name: Filter Atmos Settings Value
       uses: cloudposse/github-action-atmos-get-setting@v1
@@ -142,14 +142,14 @@ runs:
 
     - name: Install tfcmt
       if: env.ACTIONS_ENABLED == 'true'    
-      uses: jaxxstorm/action-install-gh-release@v1.10.0
+      uses: jaxxstorm/action-install-gh-release@v1.11.0
       with:
         repo: suzuki-shunsuke/tfcmt
         tag: v4.6.0
 
     - name: Install terraform-docs
       if: env.ACTIONS_ENABLED == 'true'
-      uses: jaxxstorm/action-install-gh-release@v1.10.0
+      uses: jaxxstorm/action-install-gh-release@v1.11.0
       with:
         repo: terraform-docs/terraform-docs
         tag: v0.17.0
@@ -175,7 +175,7 @@ runs:
 
     - name: Configure State AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
-      uses: aws-actions/configure-aws-credentials@v2.2.0
+      uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
         role-to-assume: ${{ steps.config.outputs.terraform-state-role }}
@@ -211,7 +211,7 @@ runs:
 
     - name: Configure AWS Credentials
       if: env.ACTIONS_ENABLED == 'true'
-      uses: aws-actions/configure-aws-credentials@v2.2.0
+      uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
         role-to-assume: ${{ steps.config.outputs.terraform-apply-role }}

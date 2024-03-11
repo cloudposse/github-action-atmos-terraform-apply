@@ -15,10 +15,13 @@ inputs:
     description: "Commit SHA to apply. Default: github.sha"
     required: true
     default: "${{ github.event.pull_request.head.sha }}"
-  atmos-gitops-config-path:
-    description: The path to the atmos-gitops.yaml file
+  atmos-version:
+    description: The version of atmos to install
     required: false
-    default: ./.github/config/atmos-gitops.yaml
+    default: ">= 1.63.0"
+  atmos-config-path:
+    description: The path to the atmos.yaml file
+    required: true
   infracost-api-key:
     description: "Infracost API key"
     required: false
@@ -51,20 +54,30 @@ runs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Read Atmos GitOps config
-      ## We have to reference cloudposse fork of https://github.com/blablacar/action-config-levels
-      ## before https://github.com/blablacar/action-config-levels/pull/16 would be merged
-      uses: cloudposse/github-action-config-levels@nodejs20
-      id: config
-      with:
-        output_properties: true
-        patterns: |
-          - ${{ inputs.atmos-gitops-config-path }}
-
     - name: Set atmos cli config path vars
       shell: bash
       run: |-
-        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ steps.config.outputs.atmos-config-path }})" >> $GITHUB_ENV
+        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
+
+    - name: Install Atmos
+      uses: cloudposse/github-action-setup-atmos@v2
+      with:
+        atmos-version: ${{ inputs.atmos-version }}
+        token: ${{ inputs.token }}
+        install-wrapper: false
+
+    - name: config
+      shell: bash
+      id: config
+      run: |-
+        echo "terraform-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["terraform-version"]')" >> $GITHUB_OUTPUT
+        echo "enable-infracost=$(atmos describe config -f json | jq -r '.integrations.github.gitops["infracost-enabled"]')" >> $GITHUB_OUTPUT        
+        echo "aws-region=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].region')" >> $GITHUB_OUTPUT
+        echo "terraform-state-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].role')" >> $GITHUB_OUTPUT
+        echo "terraform-state-table=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].table')" >> $GITHUB_OUTPUT
+        echo "terraform-state-bucket=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].bucket')" >> $GITHUB_OUTPUT        
+        echo "terraform-plan-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.plan')" >> $GITHUB_OUTPUT
+        echo "terraform-apply-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.apply')" >> $GITHUB_OUTPUT
 
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v3
@@ -76,14 +89,6 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: 20
-
-
-    - name: Install Atmos
-      uses: cloudposse/github-action-setup-atmos@v2
-      with:
-        atmos-version: ${{ steps.config.outputs.atmos-version }}
-        token: ${{ inputs.token }}
-        install-wrapper: false
 
     - name: Filter Atmos Settings Value
       uses: cloudposse/github-action-atmos-get-setting@v1
@@ -134,7 +139,7 @@ runs:
         # Set ATMOS_BASE_PATH allow `cloudposse/utils` provider to read atmos config from the correct path 
         ATMOS_BASE_PATH="${{ steps.base-path.outputs.value }}"
         echo "ATMOS_BASE_PATH=$(realpath ${ATMOS_BASE_PATH:-./})" >> $GITHUB_ENV
-        
+
     - name: Install tfcmt
       if: env.ACTIONS_ENABLED == 'true'    
       uses: jaxxstorm/action-install-gh-release@v1.11.0
@@ -212,13 +217,6 @@ runs:
         role-to-assume: ${{ steps.config.outputs.terraform-apply-role }}
         role-session-name: "atmos-terraform-apply-gitops"
         mask-aws-account-id: "no"
-
-    - name: Atmos Setup Workspace
-      if: env.ACTIONS_ENABLED == 'true'
-      id: atmos-init
-      shell: bash
-      run: |
-        atmos terraform workspace ${{ inputs.component }} -s ${{ inputs.stack }}
 
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true'
@@ -308,10 +306,10 @@ runs:
         TERRAFORM_RESULT=$?
 
         set -e
-        
+                
         cat "${TERRAFORM_OUTPUT_FILE}"
         
-        terraform output --json > output_values.json
+        # terraform output --json > output_values.json
         
         # terraform-docs -c ${{ github.action_path }}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
         
@@ -319,10 +317,10 @@ runs:
         # sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         # sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         # sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
-
+        
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
-
-        if [ $TERRAFORM_RESULT -eq 0 ]; then
+        
+        if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
         else

@@ -142,14 +142,14 @@ runs:
 
     - name: Install tfcmt
       if: env.ACTIONS_ENABLED == 'true'    
-      uses: jaxxstorm/action-install-gh-release@v1.11.0
+      uses: jaxxstorm/action-install-gh-release@v1.12.0
       with:
         repo: suzuki-shunsuke/tfcmt
         tag: v4.6.0
 
     - name: Install terraform-docs
       if: env.ACTIONS_ENABLED == 'true'
-      uses: jaxxstorm/action-install-gh-release@v1.11.0
+      uses: jaxxstorm/action-install-gh-release@v1.12.0
       with:
         repo: terraform-docs/terraform-docs
         tag: v0.17.0

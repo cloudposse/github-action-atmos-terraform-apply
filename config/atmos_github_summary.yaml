@@ -70,6 +70,14 @@ terraform:
       {{wrapCode .CombinedOutput}}
       </details>
       
+      <details><summary><a id="outputs-{{.Vars.stack}}-{{.Vars.component}}" />Terraform Outputs</summary>
+      
+      [//]: # (BEGIN_TF_DOCS)
+      
+      [//]: # (END_TF_DOCS)
+      
+      </details>
+
       {{if ne .Vars.infracost_details_diff_breakdown ""}}
       {{template "infracost" .}}
       {{end}}

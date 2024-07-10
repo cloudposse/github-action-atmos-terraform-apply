@@ -152,7 +152,7 @@ runs:
       uses: jaxxstorm/action-install-gh-release@v1.11.0
       with:
         repo: terraform-docs/terraform-docs
-        tag: v0.17.0
+        tag: v0.18.0
 
     - name: Define Job Variables
       if: env.ACTIONS_ENABLED == 'true'
@@ -304,6 +304,18 @@ runs:
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?
+
+        
+        terraform output --json > output_values.json
+        
+        echo "terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml ./"
+        
+        terraform-docs -c ${{ github.action_path }}config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
+        
+        sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
 
         set -e
                 

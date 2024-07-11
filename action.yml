@@ -305,6 +305,7 @@ runs:
         
         TERRAFORM_RESULT=$?
 
+        set -e
         
         terraform output --json > output_values.json
         
@@ -316,19 +317,8 @@ runs:
         sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
-
-        set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
-        
-        # terraform output --json > output_values.json
-        
-        # terraform-docs -c ${{ github.action_path }}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
-        
-        # sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
-        # sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
-        # sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
-        # sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
         
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
         

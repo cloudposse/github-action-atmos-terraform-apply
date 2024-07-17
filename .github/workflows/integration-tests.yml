@@ -67,7 +67,7 @@ jobs:
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
       - name: Apply Atmos Component
-        uses: ./
+        uses: .
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"

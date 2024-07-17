@@ -333,6 +333,9 @@ runs:
         set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
+
+        # Init backend required to get outputs
+        atmos terraform init ${{ inputs.component }} --stack ${{ inputs.stack }} -no-color
         
         ${{ steps.command.outputs.value }} output --json > output_values.json
         

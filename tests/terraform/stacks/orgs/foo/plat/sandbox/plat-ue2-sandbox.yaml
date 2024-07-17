@@ -5,7 +5,7 @@ terraform:
   backend_type: s3
   backend:
     s3:
-      bucket: cptest-core-ue2-root-tfstate-plat
+      bucket: cptest-core-ue2-root-tfstate-plat/terraform
       dynamodb_table: cptest-core-ue2-root-tfstate-plat-lock
       role_arn: arn:aws:iam::822777368227:role/cptest-core-gbl-root-tfstate-plat
       encrypt: true

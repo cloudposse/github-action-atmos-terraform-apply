@@ -178,11 +178,11 @@ runs:
       shell: bash
       run: |
         STACK_NAME=$(echo "${{ inputs.stack }}" | sed 's#/#_#g')
-        COMPONENT_PATH=${{ steps.component-path.outputs.value }}
+        COMPONENT_PATH=$( realpath ${{ steps.component-path.outputs.value }})
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
-        PLAN_FILE="$( realpath ${COMPONENT_PATH})/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
-        LOCK_FILE="$( realpath ${COMPONENT_PATH})/.terraform.lock.hcl"
+        PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
+        LOCK_FILE="${COMPONENT_PATH}/.terraform.lock.hcl"
 
         echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
         echo "component_name=$COMPONENT_NAME" >> $GITHUB_OUTPUT

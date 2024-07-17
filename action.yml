@@ -332,7 +332,7 @@ runs:
 
         set -e
         
-        terraform output --json > output_values.json
+        ${{ steps.command.outputs.value }} output --json > output_values.json
         
         terraform-docs -c ${{ github.action_path }}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
         

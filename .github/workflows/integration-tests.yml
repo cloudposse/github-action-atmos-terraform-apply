@@ -18,7 +18,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       max-parallel: 1
       fail-fast: false # Don't fail fast to avoid locking TF State

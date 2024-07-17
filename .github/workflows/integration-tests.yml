@@ -16,8 +16,13 @@ permissions:
   contents: read
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      fail-fast: false # Don't fail fast to avoid locking TF State
+      matrix:
+        platform: [terraform, opentofu]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,7 +31,7 @@ jobs:
       - shell: bash
         run: |
           mkdir -p ${{ runner.temp }}
-          cp ./tests/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml          
           sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
           sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
@@ -42,27 +47,16 @@ jobs:
           component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          atmos-version: 1.81.0
 
-  test:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - shell: bash
+      - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
+        shell: bash
         run: |
-          mkdir -p ${{ runner.temp }}
-          cp ./tests/atmos.yaml ${{ runner.temp }}/atmos.yaml          
-          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
-          sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml          
-          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__STORAGE_ROLE__#${{ secrets.TERRAFORM_STATE_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sleep 15;
 
       - name: Apply Atmos Component
         uses: ./
@@ -70,4 +64,5 @@ jobs:
           component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          atmos-version: 1.81.0
           debug: true

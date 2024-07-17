@@ -9,7 +9,7 @@ terraform:
       dynamodb_table: cptest-core-ue2-root-tfstate-plat-lock
       role_arn: arn:aws:iam::822777368227:role/cptest-core-gbl-root-tfstate-plat
       encrypt: true
-      key: terraform.tfstate
+      key: terraform/terraform.tfstate
       acl: bucket-owner-full-control
       region: us-east-2
   

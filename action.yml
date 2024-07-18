@@ -334,7 +334,8 @@ runs:
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
 
-        ${{ steps.command.outputs.value }} output --json  -state=$(find .  -name terraform.tfstate) > output_values.json
+        find .  -name terraform.tfstate
+        ${{ steps.command.outputs.value }} output -json  -state=$(find .  -name terraform.tfstate) > output_values.json
         
         terraform-docs -c ${{ github.action_path }}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
         

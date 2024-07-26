@@ -181,6 +181,7 @@ runs:
         COMPONENT_PATH=$( realpath ${{ steps.component-path.outputs.value }})
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
+        COMPONENT_CACHE_KEY=$(basename "${{ steps.component-path.outputs.value }}")
         PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         LOCK_FILE="${COMPONENT_PATH}/.terraform.lock.hcl"
 
@@ -188,6 +189,7 @@ runs:
         echo "component_name=$COMPONENT_NAME" >> $GITHUB_OUTPUT
         echo "component_slug=$COMPONENT_SLUG" >> $GITHUB_OUTPUT
         echo "component_path=${COMPONENT_PATH}" >> $GITHUB_OUTPUT
+        echo "cache-key=${COMPONENT_CACHE_KEY}" >> $GITHUB_OUTPUT
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
@@ -297,6 +299,15 @@ runs:
 
         echo "infracost_details_diff_breakdown=$INFRACOST_DETAILS_DIFF_BREAKDOWN" >> "$GITHUB_OUTPUT"
         echo "infracost_diff_total_monthly_cost=$INFRACOST_DIFF_TOTAL_MONTHLY_COST" >> "$GITHUB_OUTPUT"
+
+    - name: Cache .terraform
+      id: cache
+      uses: actions/cache@v4
+      if: ${{ steps.atmos-github-actions-enabled.outputs.value == 'true' }}
+      with:
+        path: |
+          ./${{ steps.vars.outputs.component_path }}/.terraform
+        key: ${{ steps.vars.outputs.cache-key }}
 
     - name: Terraform Apply
       if: env.ACTIONS_ENABLED == 'true'

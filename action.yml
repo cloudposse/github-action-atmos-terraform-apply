@@ -306,7 +306,7 @@ runs:
       if: ${{ steps.atmos-github-actions-enabled.outputs.value == 'true' }}
       with:
         path: |
-          ./${{ steps.vars.outputs.component_path }}/.terraform
+          ${{ steps.vars.outputs.component_path }}/.terraform
         key: ${{ steps.vars.outputs.cache-key }}
 
     - name: Terraform Apply

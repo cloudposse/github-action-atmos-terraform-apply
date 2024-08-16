@@ -51,6 +51,11 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Install Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
     - name: Checkout
       uses: actions/checkout@v4
 
@@ -87,17 +92,16 @@ runs:
         terraform_version: ${{ steps.config.outputs.terraform-version }}
         terraform_wrapper: false
 
-    - name: Install OpenTofu
-      if: ${{ steps.config.outputs.opentofu-version != '' && steps.config.outputs.opentofu-version != 'null' }}
-      uses: opentofu/setup-opentofu@v1
+    - name: Install Dependencies
+      uses: cloudposse-github-actions/install-gh-releases@v1
       with:
-        tofu_version: ${{ steps.config.outputs.opentofu-version }}
-        tofu_wrapper: false
-
-    - name: Install Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+        cache: true
+        config: |-
+          opentofu/opentofu: 
+            tag: ${{ startsWith(steps.config.outputs.opentofu-version, 'v') && steps.config.outputs.opentofu-version || format('v{0}', steps.config.outputs.opentofu-version) }}
+            skip: ${{ steps.config.outputs.opentofu-version == '' || steps.config.outputs.opentofu-version == 'null' }}
+          suzuki-shunsuke/tfcmt: v4.11.0
+          terraform-docs/terraform-docs: v0.18.0
 
     - name: Filter Atmos Settings Value
       uses: cloudposse/github-action-atmos-get-setting@v1
@@ -157,20 +161,6 @@ runs:
         # Set ATMOS_BASE_PATH allow `cloudposse/utils` provider to read atmos config from the correct path 
         ATMOS_BASE_PATH="${{ steps.base-path.outputs.value }}"
         echo "ATMOS_BASE_PATH=$(realpath ${ATMOS_BASE_PATH:-./})" >> $GITHUB_ENV
-
-    - name: Install tfcmt
-      if: env.ACTIONS_ENABLED == 'true'    
-      uses: jaxxstorm/action-install-gh-release@v1.11.0
-      with:
-        repo: suzuki-shunsuke/tfcmt
-        tag: v4.11.0
-
-    - name: Install terraform-docs
-      if: env.ACTIONS_ENABLED == 'true'
-      uses: jaxxstorm/action-install-gh-release@v1.11.0
-      with:
-        repo: terraform-docs/terraform-docs
-        tag: v0.18.0
 
     - name: Define Job Variables
       if: env.ACTIONS_ENABLED == 'true'

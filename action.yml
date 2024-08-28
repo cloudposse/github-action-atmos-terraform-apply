@@ -103,6 +103,14 @@ runs:
           suzuki-shunsuke/tfcmt: v4.11.0
           terraform-docs/terraform-docs: v0.18.0
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4.0.2
+      with:
+        aws-region: ${{ steps.config.outputs.aws-region }}
+        role-to-assume: ${{ steps.config.outputs.terraform-apply-role }}
+        role-session-name: "atmos-terraform-apply-gitops"
+        mask-aws-account-id: "no"
+
     - name: Get atmos settings
       uses: cloudposse/github-action-atmos-get-setting@v1
       id: component

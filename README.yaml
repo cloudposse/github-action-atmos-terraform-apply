@@ -49,25 +49,41 @@ references:
 usage: |-
   ### Prerequisites
 
-  This GitHub Action requires AWS access for two different purposes. This action will attempt to first pull a Terraform planfile from a S3 Bucket with metadata in a DynamoDB table with one role. 
-  Then the action will run `terraform apply` against that component with another role. We recommend configuring 
-  [OpenID Connect with AWS](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) 
-  to allow GitHub to assume roles in AWS and then deploying both a Terraform Apply role and a Terraform State role. 
-  For Cloud Posse documentation on setting up GitHub OIDC, see our [`github-oidc-provider` component](https://docs.cloudposse.com/components/library/aws/github-oidc-provider/).
+  This GitHub Action requires AWS access for two different purposes. This action will attempt to first pull a Terraform
+  planfile from a S3 Bucket with metadata in a DynamoDB table with one role. Then the action will run `terraform apply`
+  against that component with another role. We recommend configuring [OpenID Connect with
+  AWS](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
+  to allow GitHub to assume roles in AWS and then deploying both a Terraform Apply role and a Terraform State role. For
+  Cloud Posse documentation on setting up GitHub OIDC, see our [`github-oidc-provider`
+  component](https://docs.cloudposse.com/components/library/aws/github-oidc-provider/).
 
-  In order to retrieve Terraform Plan Files (not to be confused with Terraform State files, e.g. `tfstate`), we configure an S3 Bucket to store plan files and a DynamoDB table to track plan metadata. Both need to be deployed before running
-  this action. For more on setting up those components, see the [`gitops` component](https://docs.cloudposse.com/components/library/aws/gitops/). This action will then use the [github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage) action to update these resources.
+  In order to retrieve Terraform Plan Files (not to be confused with Terraform State files, e.g. `tfstate`), we
+  configure an S3 Bucket to store plan files and a DynamoDB table to track plan metadata. Both need to be deployed
+  before running this action. For more on setting up those components, see the [`gitops`
+  component](https://docs.cloudposse.com/components/library/aws/gitops/). This action will then use the
+  [github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage) action to
+  update these resources.
+
+  ### Atmos Pro
+
+  If you are using the stack locking feature of this action (setting `lock-stack` to `true`), you will need to sign up
+  for an [Atmos Pro](https://app.cloudposse.com) account and generate an API key. You can then set the `atmos-pro-token`
+  input variable to the value of your API key. If you are an enterprise customer and using a dedicated Atmos Pro
+  instance, you should also set the `atmos-pro-base-url` input variable to the base URL of your Atmos Pro instance.
+
+  > [!IMPORTANT] > **Please note!** If you are using stack locking, this GitHub Action only works with `atmos >=
+  1.XX.0`. If you are using `atmos < 1.XX.0` stack locking will not work..
 
   ### Config
 
   The action expects the atmos configuration file `atmos.yaml` to be present in the repository.
   The config should have the following structure:
-  
+
   ```yaml
   integrations:
     github:
       gitops:
-        opentofu-version: 1.7.3  
+        opentofu-version: 1.7.3
         terraform-version: 1.5.2
         infracost-enabled: false
         artifact-storage:
@@ -82,44 +98,44 @@ usage: |-
           sort-by: .stack_slug
           group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
   ```
-  
+
   > [!IMPORTANT]
-  > **Please note!** This GitHub Action only works with `atmos >= 1.63.0`. If you are using `atmos < 1.63.0` please use `v1` version of this action.      
-  
+  > **Please note!** This GitHub Action only works with `atmos >= 1.63.0`. If you are using `atmos < 1.63.0` please use `v1` version of this action.
+
   ### Support OpenTofu
-  
+
   This action supports [OpenTofu](https://opentofu.org/).
-  
+
   > [!IMPORTANT]
   > **Please note!** OpenTofu supported by Atmos `>= 1.73.0`.
   > For details [read](https://atmos.tools/core-concepts/projects/configuration/opentofu/)
-  
+
   To enable OpenTofu add the following settings to `atmos.yaml`
     * Set the `opentofu-version` in the `atmos.yaml` to the desired version
     * Set `components.terraform.command` to `tofu`
-  
+
   #### Example
-  
+
   ```yaml
-  
+
   components:
     terraform:
       command: tofu
-  
+
   ...
-  
+
   integrations:
     github:
       gitops:
         opentofu-version: 1.7.3
         ...
-  ```  
+  ```
 
   ### Workflow example
 
-  In this example, the action is triggered when certain events occur, such as a manual workflow dispatch or the opening, synchronization, or reopening of a pull request, specifically on the main branch. It specifies specific permissions related to assuming roles in AWS. Within the "apply" job, the "component" and "stack" are hardcoded (`foobar` and `plat-ue2-sandbox`). In practice, these are usually derived from another action. 
-  
-  > [!TIP] 
+  In this example, the action is triggered when certain events occur, such as a manual workflow dispatch or the opening, synchronization, or reopening of a pull request, specifically on the main branch. It specifies specific permissions related to assuming roles in AWS. Within the "apply" job, the "component" and "stack" are hardcoded (`foobar` and `plat-ue2-sandbox`). In practice, these are usually derived from another action.
+
+  > [!TIP]
   We recommend combining this action with the [`affected-stacks`](https://atmos.tools/integrations/github-actions/affected-stacks) GitHub Action inside a matrix to plan all affected stacks in parallel.
 
   ```yaml
@@ -151,26 +167,26 @@ usage: |-
   ```
 
   ### Migrating from `v1` to `v2`
-  
+
   The notable changes in `v2` are:
-  
+
   - `v2` works only with `atmos >= 1.63.0`
   - `v2` drops `install-terraform` input because terraform is not required for affected stacks call
   - `v2` drops `atmos-gitops-config-path` input and the `./.github/config/atmos-gitops.yaml` config file. Now you have to use GitHub Actions environment variables to specify the location of the `atmos.yaml`.
-  
+
   The following configuration fields now moved to GitHub action inputs with the same names
-  
+
   |         name            |
   |-------------------------|
   | `atmos-version`         |
   | `atmos-config-path`     |
-  
-  
+
+
   The following configuration fields moved to the `atmos.yaml` configuration file.
-  
+
   |              name        |    YAML path in `atmos.yaml`                    |
   |--------------------------|-------------------------------------------------|
-  | `aws-region`             | `integrations.github.gitops.artifact-storage.region`     | 
+  | `aws-region`             | `integrations.github.gitops.artifact-storage.region`     |
   | `terraform-state-bucket` | `integrations.github.gitops.artifact-storage.bucket`     |
   | `terraform-state-table`  | `integrations.github.gitops.artifact-storage.table`      |
   | `terraform-state-role`   | `integrations.github.gitops.artifact-storage.role`       |
@@ -180,14 +196,14 @@ usage: |-
   | `enable-infracost`       |  `integrations.github.gitops.infracost-enabled` |
   | `sort-by`                |  `integrations.github.gitops.matrix.sort-by`    |
   | `group-by`               |  `integrations.github.gitops.matrix.group-by`   |
-  
-  
+
+
   For example, to migrate from `v1` to `v2`, you should have something similar to the following in your `atmos.yaml`:
-  
+
   `./.github/config/atmos.yaml`
   ```yaml
   # ... your existing configuration
-  
+
   integrations:
     github:
       gitops:
@@ -205,7 +221,7 @@ usage: |-
           sort-by: .stack_slug
           group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
   ```
-  
+
   `.github/workflows/main.yaml`
   ```yaml
     - name: Plan Atmos Component
@@ -215,12 +231,12 @@ usage: |-
         stack: "plat-ue2-sandbox"
         atmos-config-path: ./rootfs/usr/local/etc/atmos/
         atmos-version: 1.63.0
-  ``` 
-  
+  ```
+
   This corresponds to the `v1` configuration (deprecated) below.
-  
+
   The `v1` configuration file `./.github/config/atmos-gitops.yaml` looked like this:
-  
+
   ```yaml
   atmos-version: 1.45.3
   atmos-config-path: ./rootfs/usr/local/etc/atmos/
@@ -233,11 +249,11 @@ usage: |-
   aws-region: us-east-2
   enable-infracost: false
   sort-by: .stack_slug
-  group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")  
+  group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
   ```
-  
+
   And the `v1` GitHub Action Workflow looked like this.
-  
+
   `.github/workflows/main.yaml`
   ```yaml
     - name: Plan Atmos Component
@@ -247,9 +263,9 @@ usage: |-
         stack: "plat-ue2-sandbox"
         atmos-gitops-config-path: ./.github/config/atmos-gitops.yaml
   ```
-  
+
   ### Migrating from `v0` to `v1`
-  
+
   1. `v1` drops the `component-path` variable and instead fetches if directly from the [`atmos.yaml` file](https://atmos.tools/cli/configuration/) automatically. Simply remove the `component-path` argument from your invocations of the `cloudposse/github-action-atmos-terraform-apply` action.
   2. `v1` moves most of the `inputs` to the Atmos GitOps config path `./.github/config/atmos-gitops.yaml`. Simply create this file, transfer your settings to it, then remove the corresponding arguments from your invocations of the `cloudposse/github-action-atmos-terraform-apply` action.
 
@@ -265,10 +281,10 @@ usage: |-
   | `terraform-version`      |
   | `aws-region`             |
   | `enable-infracost`       |
-  
-  
+
+
   If you want the same behavior in `v1` as in `v0` you should create config `./.github/config/atmos-gitops.yaml` with the same variables as in `v0` inputs.
-  
+
   ```yaml
   - name: Terraform apply
     uses: cloudposse/github-action-atmos-terraform-apply@v1
@@ -277,9 +293,9 @@ usage: |-
       component: "foobar"
       stack: "plat-ue2-sandbox"
   ```
-  
+
   Which would produce the same behavior as in `v0`, doing this:
-  
+
   ```yaml
   - name: Terraform apply
     uses: cloudposse/github-action-atmos-terraform-apply@v0

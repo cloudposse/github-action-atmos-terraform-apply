@@ -1,9 +1,9 @@
-name: 'GitHub Action Atmos Terraform Apply'
-description: 'GitHub Action Atmos Terraform Apply'
+name: "GitHub Action Atmos Terraform Apply"
+description: "GitHub Action Atmos Terraform Apply"
 author: hello@cloudposse.com
 branding:
-  icon: 'server'
-  color: 'white'
+  icon: "server"
+  color: "white"
 inputs:
   component:
     description: "The name of the component to apply."
@@ -22,6 +22,17 @@ inputs:
   atmos-config-path:
     description: The path to the atmos.yaml file
     required: true
+  lock-stack:
+    description: "Flag to indicate if Atmos Pro stack locking should be used"
+    required: true
+    default: "false"
+  atmos-pro-token:
+    description: Your API key for Atmos Pro
+    required: false
+  atmos-pro-base-url:
+    description: The base URL for Atmos Pro
+    required: false
+    default: "https://app.cloudposse.com"
   infracost-api-key:
     description: "Infracost API key"
     required: false
@@ -35,7 +46,7 @@ inputs:
     default: "https://cloudposse.com/"
   debug:
     description: "Enable action debug mode. Default: 'false'"
-    default: 'false'
+    default: "false"
     required: false
   token:
     description:
@@ -75,13 +86,13 @@ runs:
       shell: bash
       id: config
       run: |-
-        echo "opentofu-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["opentofu-version"]')" >> $GITHUB_OUTPUT        
+        echo "opentofu-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["opentofu-version"]')" >> $GITHUB_OUTPUT
         echo "terraform-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["terraform-version"]')" >> $GITHUB_OUTPUT
-        echo "enable-infracost=$(atmos describe config -f json | jq -r '.integrations.github.gitops["infracost-enabled"]')" >> $GITHUB_OUTPUT        
+        echo "enable-infracost=$(atmos describe config -f json | jq -r '.integrations.github.gitops["infracost-enabled"]')" >> $GITHUB_OUTPUT
         echo "aws-region=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].region')" >> $GITHUB_OUTPUT
         echo "terraform-state-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].role')" >> $GITHUB_OUTPUT
         echo "terraform-state-table=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].table')" >> $GITHUB_OUTPUT
-        echo "terraform-state-bucket=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].bucket')" >> $GITHUB_OUTPUT        
+        echo "terraform-state-bucket=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].bucket')" >> $GITHUB_OUTPUT
         echo "terraform-plan-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.plan')" >> $GITHUB_OUTPUT
         echo "terraform-apply-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.apply')" >> $GITHUB_OUTPUT
 
@@ -97,7 +108,7 @@ runs:
       with:
         cache: true
         config: |-
-          opentofu/opentofu: 
+          opentofu/opentofu:
             tag: ${{ startsWith(steps.config.outputs.opentofu-version, 'v') && steps.config.outputs.opentofu-version || format('v{0}', steps.config.outputs.opentofu-version) }}
             skip: ${{ steps.config.outputs.opentofu-version == '' || steps.config.outputs.opentofu-version == 'null' }}
           suzuki-shunsuke/tfcmt: v4.11.0
@@ -153,7 +164,7 @@ runs:
       if: env.ACTIONS_ENABLED == 'true'
       shell: bash
       run: |-
-        # Set ATMOS_BASE_PATH allow `cloudposse/utils` provider to read atmos config from the correct path 
+        # Set ATMOS_BASE_PATH allow `cloudposse/utils` provider to read atmos config from the correct path
         ATMOS_BASE_PATH="${{ fromJson(steps.component.outputs.settings).base-path }}"
         echo "ATMOS_BASE_PATH=$(realpath ${ATMOS_BASE_PATH:-./})" >> $GITHUB_ENV
 
@@ -294,6 +305,16 @@ runs:
           ${{ steps.vars.outputs.component_path }}/.terraform
         key: ${{ steps.vars.outputs.cache-key }}
 
+    - name: Atmos Lock Stack
+      if: ${{ fromJson(steps.component.outputs.settings).enabled && inputs.lock-stack == 'true' }}
+      id: atmos-lock-stack
+      shell: bash
+      env:
+        ATMOS_PRO_TOKEN: ${{ inputs.atmos-pro-token }}
+        ATMOS_PRO_BASE_URL: ${{ inputs.atmos-pro-base-url }}
+      run: |
+        atmos pro lock -ttl 300 --stack ${{ inputs.stack }} --component ${{ inputs.component }} --message "Locked by GitHub Action github-action-atmos-terraform-plan. SHA of the commit that triggered the workflow: ${{ inputs.sha }}"
+
     - name: Terraform Apply
       if: env.ACTIONS_ENABLED == 'true'
       id: apply
@@ -301,7 +322,7 @@ runs:
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         set +e
-        
+
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
 
         tfcmt \
@@ -323,22 +344,22 @@ runs:
             -input=false \
             -no-color \
         &> ${TERRAFORM_OUTPUT_FILE}
-        
+
         TERRAFORM_RESULT=$?
 
         set -e
-                
+
         cat "${TERRAFORM_OUTPUT_FILE}"
-        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json 1> output_values.json        
+        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json 1> output_values.json
         terraform-docs -c ${{ github.action_path }}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
-        
+
         sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
-        
+
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
-        
+
         if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
@@ -349,7 +370,17 @@ runs:
 
         # Link to a job that executed this action
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
-        
+
         rm -f ${TERRAFORM_OUTPUT_FILE}
-        
+
         exit $TERRAFORM_RESULT
+
+    - name: Atmos Unlock Stack
+      if: ${{ fromJson(steps.component.outputs.settings).enabled && inputs.lock-stack == 'true' }}
+      id: atmos-unlock-stack
+      shell: bash
+      env:
+        ATMOS_PRO_TOKEN: ${{ inputs.atmos-pro-token }}
+        ATMOS_PRO_BASE_URL: ${{ inputs.atmos-pro-base-url }}
+      run: |
+        atmos pro unlock --stack ${{ inputs.stack }} --component ${{ inputs.component }}

@@ -78,8 +78,7 @@ runs:
         echo "opentofu-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["opentofu-version"]')" >> $GITHUB_OUTPUT        
         echo "terraform-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["terraform-version"]')" >> $GITHUB_OUTPUT
         echo "enable-infracost=$(atmos describe config -f json | jq -r '.integrations.github.gitops["infracost-enabled"]')" >> $GITHUB_OUTPUT        
-        # AWS IAM role for Terraform plan
-        echo "terraform-plan-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.plan')" >> $GITHUB_OUTPUT
+        # AWS IAM role for Terraform apply
         echo "terraform-apply-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.apply')" >> $GITHUB_OUTPUT        
         # AWS plan storage settings
         echo "aws-region=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].region')" >> $GITHUB_OUTPUT

@@ -213,7 +213,6 @@ runs:
         steps.config.outputs.terraform-state-bucket != '' &&
         steps.config.outputs.terraform-state-bucket != 'null' }}
       uses: cloudposse/github-action-terraform-plan-storage@v1
-      id: retrieve-plan
       continue-on-error: true
       with:
         action: getPlan
@@ -258,7 +257,6 @@ runs:
         steps.config.outputs.cosmos-endpoint != '' &&
         steps.config.outputs.cosmos-endpoint != 'null' }}
       uses: cloudposse/github-action-terraform-plan-storage@v1
-      id: retrieve-plan
       continue-on-error: true
       with:
         action: getPlan

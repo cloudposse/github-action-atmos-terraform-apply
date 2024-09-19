@@ -78,12 +78,23 @@ runs:
         echo "opentofu-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["opentofu-version"]')" >> $GITHUB_OUTPUT        
         echo "terraform-version=$(atmos describe config -f json | jq -r '.integrations.github.gitops["terraform-version"]')" >> $GITHUB_OUTPUT
         echo "enable-infracost=$(atmos describe config -f json | jq -r '.integrations.github.gitops["infracost-enabled"]')" >> $GITHUB_OUTPUT        
+        # AWS IAM role for Terraform plan
+        echo "terraform-plan-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.plan')" >> $GITHUB_OUTPUT
+        echo "terraform-apply-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.apply')" >> $GITHUB_OUTPUT        
+        # AWS plan storage settings
         echo "aws-region=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].region')" >> $GITHUB_OUTPUT
         echo "terraform-state-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].role')" >> $GITHUB_OUTPUT
         echo "terraform-state-table=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].table')" >> $GITHUB_OUTPUT
         echo "terraform-state-bucket=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"].bucket')" >> $GITHUB_OUTPUT        
-        echo "terraform-plan-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.plan')" >> $GITHUB_OUTPUT
-        echo "terraform-apply-role=$(atmos describe config -f json | jq -r '.integrations.github.gitops.role.apply')" >> $GITHUB_OUTPUT
+        # Azure plan storage settings
+        echo "plan-repository-type=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["plan-repository-type"]')" >> $GITHUB_OUTPUT        
+        echo "blob-account-name=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["blob-account-name"]')" >> $GITHUB_OUTPUT
+        echo "blob-container-name=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["blob-container-name"]')" >> $GITHUB_OUTPUT
+        echo "metadata-repository-type=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["metadata-repository-type"]')" >> $GITHUB_OUTPUT
+        echo "cosmos-container-name=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["cosmos-container-name"]')" >> $GITHUB_OUTPUT
+        echo "cosmos-database-name=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["cosmos-database-name"]')" >> $GITHUB_OUTPUT
+        echo "cosmos-endpoint=$(atmos describe config -f json | jq -r '.integrations.github.gitops["artifact-storage"]["cosmos-endpoint"]')" >> $GITHUB_OUTPUT        
+
 
     - name: Install Terraform
       if: ${{ steps.config.outputs.terraform-version != '' && steps.config.outputs.terraform-version != 'null' }}
@@ -104,7 +115,11 @@ runs:
           terraform-docs/terraform-docs: v0.18.0
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.0.2
+      uses: aws-actions/configure-aws-credentials@v4
+      if: ${{ steps.config.outputs.aws-region != '' &&
+        steps.config.outputs.aws-region != 'null' &&
+        steps.config.outputs.terraform-apply-role != '' &&
+        steps.config.outputs.terraform-apply-role != 'null' }}
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
         role-to-assume: ${{ steps.config.outputs.terraform-apply-role }}
@@ -179,16 +194,24 @@ runs:
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
     - name: Configure State AWS Credentials
-      if: env.ACTIONS_ENABLED == 'true'
-      uses: aws-actions/configure-aws-credentials@v4.0.2
+      if: ${{ env.ACTIONS_ENABLED == 'true' &&
+        steps.config.outputs.aws-region != '' &&
+        steps.config.outputs.aws-region != 'null' &&
+        steps.config.outputs.terraform-state-role != '' &&
+        steps.config.outputs.terraform-state-role != 'null' }}
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}
         role-to-assume: ${{ steps.config.outputs.terraform-state-role }}
         role-session-name: "atmos-terraform-state-gitops"
         mask-aws-account-id: "no"
 
-    - name: Retrieve Plan
-      if: env.ACTIONS_ENABLED == 'true'
+    - name: Retrieve Plan (AWS)
+      if: ${{ env.ACTIONS_ENABLED == 'true' &&
+        steps.config.outputs.terraform-state-table != '' &&
+        steps.config.outputs.terraform-state-table != 'null' &&
+        steps.config.outputs.terraform-state-bucket != '' &&
+        steps.config.outputs.terraform-state-bucket != 'null' }}
       uses: cloudposse/github-action-terraform-plan-storage@v1
       id: retrieve-plan
       continue-on-error: true
@@ -201,8 +224,12 @@ runs:
         tableName: ${{ steps.config.outputs.terraform-state-table }}
         bucketName: ${{ steps.config.outputs.terraform-state-bucket }}
 
-    - name: Retrieve Lockfile
-      if: env.ACTIONS_ENABLED == 'true'
+    - name: Retrieve Lockfile (AWS)
+      if: ${{ env.ACTIONS_ENABLED == 'true' &&
+        steps.config.outputs.terraform-state-table != '' &&
+        steps.config.outputs.terraform-state-table != 'null' &&
+        steps.config.outputs.terraform-state-bucket != '' &&
+        steps.config.outputs.terraform-state-bucket != 'null' }}
       uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
       with:
@@ -214,8 +241,78 @@ runs:
         tableName: ${{ steps.config.outputs.terraform-state-table }}
         bucketName: ${{ steps.config.outputs.terraform-state-bucket }}
 
+    - name: Retrieve Plan (Azure)
+      if: ${{ env.ACTIONS_ENABLED == 'true' &&
+        steps.config.outputs.plan-repository-type != '' &&
+        steps.config.outputs.plan-repository-type != 'null' &&
+        steps.config.outputs.blob-account-name != '' &&
+        steps.config.outputs.blob-account-name != 'null' &&
+        steps.config.outputs.blob-container-name != '' &&
+        steps.config.outputs.blob-container-name != 'null' &&
+        steps.config.outputs.metadata-repository-type != '' &&
+        steps.config.outputs.metadata-repository-type != 'null' &&
+        steps.config.outputs.cosmos-container-name != '' &&
+        steps.config.outputs.cosmos-container-name != 'null' &&
+        steps.config.outputs.cosmos-database-name != '' &&
+        steps.config.outputs.cosmos-database-name != 'null' &&
+        steps.config.outputs.cosmos-endpoint != '' &&
+        steps.config.outputs.cosmos-endpoint != 'null' }}
+      uses: cloudposse/github-action-terraform-plan-storage@v1
+      id: retrieve-plan
+      continue-on-error: true
+      with:
+        action: getPlan
+        planPath: ${{ steps.vars.outputs.plan_file }}
+        commitSHA: ${{ inputs.sha }}
+        component: ${{ inputs.component }}
+        stack: ${{ inputs.stack }}
+        # Azure settings
+        planRepositoryType: ${{ steps.config.outputs.plan-repository-type }}
+        blobAccountName: ${{ steps.config.outputs.blob-account-name }}
+        blobContainerName: ${{ steps.config.outputs.blob-container-name }}
+        metadataRepositoryType: ${{ steps.config.outputs.metadata-repository-type }}
+        cosmosContainerName: ${{ steps.config.outputs.cosmos-container-name }}
+        cosmosDatabaseName: ${{ steps.config.outputs.cosmos-database-name }}
+        cosmosEndpoint: ${{ steps.config.outputs.cosmos-endpoint }}
+
+    - name: Retrieve Lockfile (Azure)
+      if: ${{ env.ACTIONS_ENABLED == 'true' &&
+        steps.config.outputs.plan-repository-type != '' &&
+        steps.config.outputs.plan-repository-type != 'null' &&
+        steps.config.outputs.blob-account-name != '' &&
+        steps.config.outputs.blob-account-name != 'null' &&
+        steps.config.outputs.blob-container-name != '' &&
+        steps.config.outputs.blob-container-name != 'null' &&
+        steps.config.outputs.metadata-repository-type != '' &&
+        steps.config.outputs.metadata-repository-type != 'null' &&
+        steps.config.outputs.cosmos-container-name != '' &&
+        steps.config.outputs.cosmos-container-name != 'null' &&
+        steps.config.outputs.cosmos-database-name != '' &&
+        steps.config.outputs.cosmos-database-name != 'null' &&
+        steps.config.outputs.cosmos-endpoint != '' &&
+        steps.config.outputs.cosmos-endpoint != 'null' }}
+      uses: cloudposse/github-action-terraform-plan-storage@v1
+      continue-on-error: true
+      with:
+        action: getPlan
+        planPath: ${{ steps.vars.outputs.lock_file }}
+        commitSHA: ${{ inputs.sha }}
+        component: ${{ inputs.component }}
+        stack: "${{ inputs.stack }}-lockfile"
+        # Azure settings
+        planRepositoryType: ${{ steps.config.outputs.plan-repository-type }}
+        blobAccountName: ${{ steps.config.outputs.blob-account-name }}
+        blobContainerName: ${{ steps.config.outputs.blob-container-name }}
+        metadataRepositoryType: ${{ steps.config.outputs.metadata-repository-type }}
+        cosmosContainerName: ${{ steps.config.outputs.cosmos-container-name }}
+        cosmosDatabaseName: ${{ steps.config.outputs.cosmos-database-name }}
+        cosmosEndpoint: ${{ steps.config.outputs.cosmos-endpoint }}
+
     - name: Configure AWS Credentials
-      if: env.ACTIONS_ENABLED == 'true'
+      if: ${{ steps.config.outputs.aws-region != '' &&
+        steps.config.outputs.aws-region != 'null' &&
+        steps.config.outputs.terraform-apply-role != '' &&
+        steps.config.outputs.terraform-apply-role != 'null' }}
       uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}

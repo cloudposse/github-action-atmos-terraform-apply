@@ -193,7 +193,7 @@ runs:
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
     - name: Configure State AWS Credentials
-      if: env.ACTIONS_ENABLED == 'true'
+      if: env.ACTIONS_ENABLED == 'true'&& steps.config.outputs.backend == 'aws'
       uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
         aws-region: ${{ steps.config.outputs.aws-region }}

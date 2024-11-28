@@ -187,7 +187,6 @@ runs:
           fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
           fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != '' &&
           fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != 'null' }}
-      }}
       with:
         aws-region: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role }}
@@ -247,7 +246,6 @@ runs:
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-state-role != '' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-state-role != 'null' }}
-      }}
       with:
         aws-region: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-role }}
@@ -301,7 +299,6 @@ runs:
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != '' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != 'null' }}
-      }}
       with:
         aws-region: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role }}

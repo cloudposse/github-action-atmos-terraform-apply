@@ -42,7 +42,7 @@ jobs:
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v2
+        uses: cloudposse/github-action-atmos-terraform-plan@add-cache-and-azure
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"
@@ -64,5 +64,5 @@ jobs:
           component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
-          atmos-version: 1.81.0
+          atmos-version: 1.99.0
           debug: true

@@ -182,8 +182,7 @@ runs:
 
     - name: Configure Plan AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
-      if: ${{ fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' && 
-          fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
+      if: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
           fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
           fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != '' &&
           fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != 'null' }}
@@ -240,8 +239,10 @@ runs:
 
     - name: Configure Plan AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
-      if: ${{ env.ACTIONS_ENABLED == 'true' && 
-        fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' &&
+      if: ${{ ( fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' ||
+                fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == ''  ||
+                fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 'null' ) &&
+        env.ACTIONS_ENABLED == 'true' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-state-role != '' &&
@@ -262,10 +263,10 @@ runs:
         planPath: ${{ steps.vars.outputs.plan_file }}
         component: ${{ inputs.component }}
         stack: ${{ inputs.stack }}
-        planRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).plan-repository-type }}
+        planRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).plan-repository-type || 's3' }}
+        metadataRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).metadata-repository-type || 'dynamo' }}
         blobAccountName: ${{ fromJson(steps.atmos-settings.outputs.settings).blob-account-name }}
         blobContainerName: ${{ fromJson(steps.atmos-settings.outputs.settings).blob-container-name }}
-        metadataRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).metadata-repository-type }}
         cosmosContainerName: ${{ fromJson(steps.atmos-settings.outputs.settings).cosmos-container-name }}
         cosmosDatabaseName: ${{ fromJson(steps.atmos-settings.outputs.settings).cosmos-database-name }}
         cosmosEndpoint: ${{ fromJson(steps.atmos-settings.outputs.settings).cosmos-endpoint }}
@@ -282,10 +283,10 @@ runs:
         planPath: ${{ steps.vars.outputs.lock_file }}
         component: ${{ inputs.component }}
         stack: "${{ inputs.stack }}-lockfile"
-        planRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).plan-repository-type }}
+        planRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).plan-repository-type || 's3' }}
+        metadataRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).metadata-repository-type || 'dynamo' }}
         blobAccountName: ${{ fromJson(steps.atmos-settings.outputs.settings).blob-account-name }}
         blobContainerName: ${{ fromJson(steps.atmos-settings.outputs.settings).blob-container-name }}
-        metadataRepositoryType: ${{ fromJson(steps.atmos-settings.outputs.settings).metadata-repository-type }}
         cosmosContainerName: ${{ fromJson(steps.atmos-settings.outputs.settings).cosmos-container-name }}
         cosmosDatabaseName: ${{ fromJson(steps.atmos-settings.outputs.settings).cosmos-database-name }}
         cosmosEndpoint: ${{ fromJson(steps.atmos-settings.outputs.settings).cosmos-endpoint }}
@@ -294,8 +295,7 @@ runs:
 
     - name: Configure Plan AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
-      if: ${{ fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' &&
-        fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
+      if: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != '' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != 'null' }}

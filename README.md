@@ -66,9 +66,22 @@ For Cloud Posse documentation on setting up GitHub OIDC, see our [`github-oidc-p
 In order to retrieve Terraform Plan Files (not to be confused with Terraform State files, e.g. `tfstate`), we configure an S3 Bucket to store plan files and a DynamoDB table to track plan metadata. Both need to be deployed before running
 this action. For more on setting up those components, see the [`gitops` component](https://docs.cloudposse.com/components/library/aws/gitops/). This action will then use the [github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage) action to update these resources.
 
+
 ### Config
 
+> [!IMPORTANT]
+> **Please note!** This GitHub Action only works with `atmos >= 1.99.0`.
+> If you are using `atmos >= 1.63.0, < 1.99.0` please use `v2` version of this action.  
+> If you are using `atmos < 1.63.0` please use `v1` version of this action.
+
 The action expects the atmos configuration file `atmos.yaml` to be present in the repository.
+
+The action supports AWS and Azure to store Terraform plan files. 
+You can read more about plan storage in the [cloudposse/github-action-terraform-plan-storage](https://github.com/cloudposse/github-action-terraform-plan-storage?tab=readme-ov-file#aws-default) documentation. 
+Depends of cloud provider the following fields should be set in the `atmos.yaml`:
+
+#### AWS
+
 The config should have the following structure:
 
 ```yaml
@@ -85,14 +98,63 @@ integrations:
         role: arn:aws:iam::xxxxxxxxxxxx:role/cptest-core-ue2-auto-gitops-gha
       role:
         plan: arn:aws:iam::yyyyyyyyyyyy:role/cptest-core-gbl-identity-gitops
+        # Set `apply` empty if you don't want to assume IAM role before terraform apply
         apply: arn:aws:iam::yyyyyyyyyyyy:role/cptest-core-gbl-identity-gitops
       matrix:
         sort-by: .stack_slug
         group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
 ```
 
+#### Azure
+
+The config should have the following structure:
+
+```yaml
+integrations:
+  github:
+    gitops:
+      opentofu-version: 1.7.3  
+      terraform-version: 1.5.2
+      infracost-enabled: false
+      artifact-storage:
+        plan-repository-type: azureblob
+        blob-account-name: tfplans
+        blob-container-name: plans
+        metadata-repository-type: cosmos
+        cosmos-container-name: terraform-plan-storage
+        cosmos-database-name: terraform-plan-storage
+        cosmos-endpoint: "https://my-cosmo-account.documents.azure.com:443/"
+      # We remove the `role` section as it is AWS specific
+      matrix:
+        sort-by: .stack_slug
+        group-by: .stack_slug | split("-") | [.[0], .[2]] | join("-")
+```
+
+### Stack level configuration
+
 > [!IMPORTANT]
-> **Please note!** This GitHub Action only works with `atmos >= 1.63.0`. If you are using `atmos < 1.63.0` please use `v1` version of this action.      
+> Wherever it is possible to specify `integration.github.gitops` on stack level 
+> it is required to define default values in `atmos.yaml`
+
+It is possible to override integration settings on a stack level by defining `settings.integrations`.
+
+```yaml
+components:
+  terraform:
+    foobar:
+      settings:
+        integrations:
+          github:
+            gitops:
+              artifact-storage:
+                bucket: cptest-plat-ue2-auto-gitops
+                table: cptest-plat-ue2-auto-gitops-plan-storage
+                role: arn:aws:iam::xxxxxxxxxxxx:role/cptest-plat-ue2-auto-gitops-gha
+              role:
+                # Set `plan` empty if you don't want to assume IAM role before terraform plan  
+                plan: arn:aws:iam::yyyyyyyyyyyy:role/cptest-plat-gbl-identity-gitops
+                apply: arn:aws:iam::yyyyyyyyyyyy:role/cptest-plat-gbl-identity-gitops
+```    
 
 ### Support OpenTofu
 
@@ -157,6 +219,17 @@ We recommend combining this action with the [`affected-stacks`](https://atmos.to
             stack: "plat-ue2-sandbox"
             atmos-config-path: ./rootfs/usr/local/etc/atmos/
 ```
+
+### Migrating from `v2` to `v3`
+
+The notable changes in `v3` are:
+
+- `v3` works only with `atmos >= 1.99.0`
+- `v3` support azure plan and metadata storage
+- `v3` supports stack level integration gitops settings 
+- `v3` allow to skip internal checkout with `skip-checkout` input
+
+The only required migration step is updating atmos version to `>= 1.99.0`   
 
 ### Migrating from `v1` to `v2`
 
@@ -322,13 +395,14 @@ Which would produce the same behavior as in `v0`, doing this:
 | Name | Description | Default | Required |
 |------|-------------|---------|----------|
 | atmos-config-path | The path to the atmos.yaml file | N/A | true |
-| atmos-version | The version of atmos to install | >= 1.63.0 | false |
+| atmos-version | The version of atmos to install | >= 1.99.0 | false |
 | branding-logo-image | Branding logo image url | https://cloudposse.com/logo-300x69.svg | false |
 | branding-logo-url | Branding logo url | https://cloudposse.com/ | false |
 | component | The name of the component to apply. | N/A | true |
 | debug | Enable action debug mode. Default: 'false' | false | false |
 | infracost-api-key | Infracost API key | N/A | false |
 | sha | Commit SHA to apply. Default: github.sha | ${{ github.event.pull\_request.head.sha }} | true |
+| skip-checkout | Disable actions/checkout. Useful for when the checkout happens in a previous step and file are modified outside of git through other actions | false | false |
 | stack | The stack name for the given component. | N/A | true |
 | token | Used to pull node distributions for Atmos from Cloud Posse's GitHub repository. Since there's a default, this is typically not supplied by the user. When running this action on github.com, the default value is sufficient. When running on GHES, you can pass a personal access token for github.com if you are experiencing rate limiting. | ${{ github.server\_url == 'https://github.com' && github.token \|\| '' }} | false |
 

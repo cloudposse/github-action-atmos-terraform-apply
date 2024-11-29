@@ -383,6 +383,9 @@ runs:
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         set +e
+
+        # Remove the environment file from the cache to avoid conflicts with workspace select
+        rm -f ./${{ steps.vars.outputs.component_path }}/.terraform/environment        
         
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
 

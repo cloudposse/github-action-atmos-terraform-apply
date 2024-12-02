@@ -255,7 +255,7 @@ runs:
 
     - name: Retrieve Plan
       if: ${{ env.ACTIONS_ENABLED == 'true' }}
-      uses: cloudposse/github-action-terraform-plan-storage@v2
+      uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
       with:
         action: getPlan
@@ -275,7 +275,7 @@ runs:
 
     - name: Retrieve Lockfile
       if: ${{ env.ACTIONS_ENABLED == 'true' }}
-      uses: cloudposse/github-action-terraform-plan-storage@v2
+      uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
       with:
         action: getPlan

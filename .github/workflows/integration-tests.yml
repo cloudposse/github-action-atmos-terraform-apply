@@ -42,7 +42,7 @@ jobs:
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@add-cache-and-azure
+        uses: cloudposse/github-action-atmos-terraform-plan@v4
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"

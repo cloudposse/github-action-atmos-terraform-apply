@@ -70,7 +70,8 @@ this action. For more on setting up those components, see the [`gitops` componen
 ### Config
 
 > [!IMPORTANT]
-> **Please note!** This GitHub Action only works with `atmos >= 1.99.0`.
+> **Please note!** This GitHub Action only works with `atmos >= 1.158.0`.
+> If you are using `atmos >= 1.99.0, < 1.158.0` please use `v3` version of this action.    
 > If you are using `atmos >= 1.63.0, < 1.99.0` please use `v2` version of this action.  
 > If you are using `atmos < 1.63.0` please use `v1` version of this action.
 
@@ -219,6 +220,12 @@ We recommend combining this action with the [`affected-stacks`](https://atmos.to
             stack: "plat-ue2-sandbox"
             atmos-config-path: ./rootfs/usr/local/etc/atmos/
 ```
+### Migrating from `v3` to `v4`
+
+The notable changes in `v4` are:
+
+- `v4` works only with `atmos >= 1.158.0`
+- `v4` supports atnos `templates` and `functions`
 
 ### Migrating from `v2` to `v3`
 
@@ -395,7 +402,7 @@ Which would produce the same behavior as in `v0`, doing this:
 | Name | Description | Default | Required |
 |------|-------------|---------|----------|
 | atmos-config-path | The path to the atmos.yaml file | N/A | true |
-| atmos-version | The version of atmos to install | >= 1.99.0 | false |
+| atmos-version | The version of atmos to install | >= 1.158.0 | false |
 | branding-logo-image | Branding logo image url | https://cloudposse.com/logo-300x69.svg | false |
 | branding-logo-url | Branding logo url | https://cloudposse.com/ | false |
 | component | The name of the component to apply. | N/A | true |

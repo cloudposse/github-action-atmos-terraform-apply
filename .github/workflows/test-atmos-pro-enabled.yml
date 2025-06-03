@@ -2,6 +2,7 @@ name: "Test - Atmos Pro Enabled"
 
 on:
   workflow_dispatch: {}
+
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -25,30 +26,135 @@ jobs:
     continue-on-error: true
     needs: [setup]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Atmos Test Config
+        shell: bash
+        run: |
+          mkdir -p ${{ runner.temp }}
+          cp ./tests/opentofu/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_ROLE__#${{ secrets.TERRAFORM_STATE_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+
+          cat ${{ runner.temp }}/atmos.yaml
+
+      - name: Plan Atmos Component
+        uses: cloudposse/github-action-atmos-terraform-plan@v4
+        with:
+          component: "foobar-atmos-pro"
+          stack: "plat-ue2-sandbox"
+          atmos-config-path: ${{ runner.temp }}
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - shell: bash
+      - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
+        shell: bash
         run: |
-          mkdir -p ${{ runner.temp }}
-          cp ./tests/terraform/atmos.yaml ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__TERRAFORM_VERSION__#1.5.7#g' ${{ runner.temp }}/atmos.yaml
-          sed -i -e 's#__OPENTOFU_VERSION__#1.6.0#g' ${{ runner.temp }}/atmos.yaml
+          sleep 15;
 
-      - name: Test Terraform Apply with Atmos Pro Enabled
+      - name: Apply Atmos Pro Component
+        id: current
         uses: ./
         with:
-          component: foobar
-          stack: catalog/foobar-atmos-pro
-          atmos-config-path: ${{ runner.temp }}/atmos.yaml
-          debug: true
+          component: "foobar-atmos-pro"
+          stack: "plat-ue2-sandbox"
+          atmos-config-path: ${{ runner.temp }}
+          atmos-version: ">= 1.174.0"
 
-      - name: Test OpenTofu Apply with Atmos Pro Enabled
-        uses: ./
+    outputs:
+      result: ${{ steps.current.outcome }}
+      summary: ${{ steps.current.outputs.summary }}
+
+  assert:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: nick-fields/assert-action@v2
         with:
-          component: foobar
-          stack: catalog/foobar-atmos-pro
-          atmos-config-path: ${{ runner.temp }}/atmos.yaml
-          debug: true 
+          expected: 'success'
+          actual: "${{ needs.test.outputs.result }}"
+
+      - name: Display structure of downloaded files
+        id: metadata
+        run: |
+          set +e
+          
+          test -d ./metadata
+          DIR_EXISTS=$?
+          echo "dir_exists=${DIR_EXISTS}" >> $GITHUB_OUTPUT
+
+      - uses: nick-fields/assert-action@v2
+        with:
+          actual: "${{ steps.metadata.outputs.dir_exists }}"
+          expected: "1"
+
+      - uses: nick-fields/assert-action@v2
+        with:
+          actual: "${{ fromJSON(needs.test.outputs.summary) }}"
+          expected: |
+            ## Changes Found for `foobar-atmos-pro` in `plat-ue2-sandbox`
+  
+            <a href="https://cloudposse.com/"><img src="https://cloudposse.com/logo-300x69.svg" width="100px" align="right"/></a>
+            [![create](https://shields.io/badge/PLAN-CREATE-success?style=for-the-badge)](#user-content-create-plat-ue2-sandbox-foobar-atmos-pro)
+            
+            
+            
+            <details><summary><a id="result-plat-ue2-sandbox-foobar-atmos-pro" />Plan: 1 to add, 0 to change, 0 to destroy.</summary>
+            
+            <br/>      
+            To reproduce this locally, run:<br/><br/>
+            
+            ```shell
+            atmos terraform plan foobar-atmos-pro -s plat-ue2-sandbox
+            ```
+                
+            
+            
+                
+            ---
+            ### <a id="create-plat-ue2-sandbox-foobar-atmos-pro" />Create
+            ```diff
+            + random_id.foo[0]
+            ```
+                
+            </details>
+            
+            <details><summary>Terraform <strong>Plan</strong> Summary</summary>
+            
+            ```hcl
+            
+              # random_id.foo[0] will be created
+              + resource "random_id" "foo" {
+                  + b64_std     = (known after apply)
+                  + b64_url     = (known after apply)
+                  + byte_length = 8
+                  + dec         = (known after apply)
+                  + hex         = (known after apply)
+                  + id          = (known after apply)
+                  + keepers     = {
+                      + "seed" = "foo-plat-ue2-sandbox-blue"
+                    }
+                }
+            
+            Plan: 1 to add, 0 to change, 0 to destroy.
+            ```
+            
+            </details>
+
+  teardown:
+    runs-on: ubuntu-latest
+    needs: [assert]
+    if: ${{ always() }}
+    steps:
+      - name: Tear down
+        run: echo "Do Tear down" 

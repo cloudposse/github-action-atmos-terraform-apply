@@ -88,7 +88,11 @@ runs:
           - component: ${{ inputs.component }}
             stack: ${{ inputs.stack }}
             settingsPath: settings.github.actions_enabled
-            outputPath: enabled
+            outputPath: github-actions-enabled
+          - component: ${{ inputs.component }}
+            stack: ${{ inputs.stack }}
+            settingsPath: settings.pro.enabled
+            outputPath: atmos-pro-enabled
           - component: ${{ inputs.component }}
             stack: ${{ inputs.stack }}
             settingsPath: component_info.component_path
@@ -206,7 +210,7 @@ runs:
     - name: Check If GitHub Actions is Enabled For Component
       shell: bash
       run: |
-        if [[ "${{ fromJson(steps.atmos-settings.outputs.settings).enabled }}" == "true" ]]; then
+        if [[ "${{ fromJson(steps.atmos-settings.outputs.settings).github-actions-enabled }}" == "true" || "${{ fromJson(steps.atmos-settings.outputs.settings).atmos-pro-enabled }}" == "true" ]]; then
           echo "ACTIONS_ENABLED=true" >> $GITHUB_ENV
         else
           echo "ACTIONS_ENABLED=false" >> $GITHUB_ENV
@@ -374,7 +378,7 @@ runs:
     - name: Cache .terraform
       id: cache
       uses: actions/cache@v4
-      if: ${{ fromJson(steps.atmos-settings.outputs.settings).enabled }}
+      if: env.ACTIONS_ENABLED == 'true'
       with:
         path: |
           ${{ steps.vars.outputs.component_path }}/.terraform

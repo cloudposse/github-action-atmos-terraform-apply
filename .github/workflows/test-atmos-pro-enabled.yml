@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: nick-fields/assert-action@v2
         with:
-          expected: 'success'
+          expected: 'succeeded'
           actual: "${{ needs.test.outputs.result }}"
 
   teardown:

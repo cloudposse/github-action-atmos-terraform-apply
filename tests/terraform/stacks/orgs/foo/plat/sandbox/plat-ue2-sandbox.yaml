@@ -1,5 +1,6 @@
 import:
   - catalog/foobar
+  - catalog/foobar-atmos-pro
 
 terraform:
   backend_type: s3

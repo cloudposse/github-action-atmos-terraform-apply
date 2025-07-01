@@ -71,7 +71,7 @@ runs:
     - name: Set atmos cli config path vars
       shell: bash
       run: |-
-        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
+        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ github.workspace }}/${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
 
     - name: Install Atmos
       uses: cloudposse/github-action-setup-atmos@v2
@@ -397,37 +397,11 @@ runs:
       run: |
         set +e
 
-        echo "=== DEBUG: Starting Terraform Apply Step ==="
-        echo "DEBUG: Working directory: $(pwd)"
-        echo "DEBUG: Component path: ${{ steps.vars.outputs.component_path }}"
-        echo "DEBUG: Component: ${{ inputs.component }}"
-        echo "DEBUG: Stack: ${{ inputs.stack }}"
-        echo "DEBUG: GitHub Action Path: ${GITHUB_ACTION_PATH}"
-        echo "DEBUG: GitHub Workspace: ${{ github.workspace }}"
-        echo "DEBUG: Debug mode: ${{ inputs.debug }}"
-        
-        echo "DEBUG: Displaying atmos.yaml configuration file:"
-        echo "DEBUG: Atmos config path: ${{ inputs.atmos-config-path }}"
-        if [[ -f "${{ inputs.atmos-config-path }}" ]]; then
-          echo "DEBUG: atmos.yaml file exists, displaying contents:"
-          cat "${{ inputs.atmos-config-path }}"
-        else
-          echo "DEBUG: ERROR - atmos.yaml file does not exist at: ${{ inputs.atmos-config-path }}"
-          echo "DEBUG: Listing files in current directory:"
-          ls -la
-          echo "DEBUG: Listing files in workspace root:"
-          ls -la "${{ github.workspace }}"
-        fi
-
         # Remove the environment file from the cache to avoid conflicts with workspace select
-        echo "DEBUG: Removing .terraform/environment file..."
-        rm -f ./.terraform/environment
-        echo "DEBUG: Environment file removal completed"
+        rm -f ./.terraform/environment        
         
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
-        echo "DEBUG: Terraform output file: ${TERRAFORM_OUTPUT_FILE}"
 
-        echo "DEBUG: Starting tfcmt command..."
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
@@ -449,52 +423,34 @@ runs:
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?
-        echo "DEBUG: Terraform apply command completed with exit code: ${TERRAFORM_RESULT}"
 
         set -e
                 
-        echo "DEBUG: Displaying terraform output file contents:"
         cat "${TERRAFORM_OUTPUT_FILE}"
-        
-        echo "DEBUG: Starting atmos terraform output command..."
         atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \
           grep -v 'Switched to workspace' | \
           awk '$1~/^Warnings:$/ {exit} {print}' | \
-          grep -v 'WARN detected' 1> output_values.json
-        echo "DEBUG: Atmos terraform output command completed"
-        
-        echo "DEBUG: Starting terraform-docs command..."
+          grep -v 'WARN detected' 1> output_values.json        
         terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
-        echo "DEBUG: terraform-docs command completed"
         
-        echo "DEBUG: Processing summary file with sed commands..."
         sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
-        echo "DEBUG: Summary file processing completed"
         
-        echo "DEBUG: Appending summary to step summary..."
         cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
-        echo "DEBUG: Summary appended to step summary"
         
         if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
-          echo "DEBUG: Terraform apply succeeded"
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
         else
-          echo "DEBUG: Terraform apply failed with exit code: ${TERRAFORM_RESULT}"
           echo "status=failed" >> $GITHUB_OUTPUT
           echo "Terraform apply failed"
         fi
 
         # Link to a job that executed this action
-        echo "DEBUG: Adding job link to summary..."
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
         
-        echo "DEBUG: Cleaning up terraform output file..."
         rm -f ${TERRAFORM_OUTPUT_FILE}
         
-        echo "=== DEBUG: Terraform Apply Step Completed ==="
-        echo "DEBUG: Exiting with code: ${TERRAFORM_RESULT}"
         exit $TERRAFORM_RESULT

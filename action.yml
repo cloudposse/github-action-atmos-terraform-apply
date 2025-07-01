@@ -394,8 +394,6 @@ runs:
       id: apply
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
-      env:
-        ATMOS_CLI_CONFIG_PATH: ${{ inputs.atmos-config-path }}
       run: |
         set +e
 
@@ -417,7 +415,9 @@ runs:
           --output "${{ github.workspace }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
-            atmos terraform apply ${{ inputs.component }} \
+            atmos \
+            --config "$ATMOS_CLI_CONFIG_PATH" \
+            terraform apply ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
             -auto-approve \
             -input=false \
@@ -429,7 +429,9 @@ runs:
         set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
-        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \
+        atmos \
+          --config "$ATMOS_CLI_CONFIG_PATH" \
+          terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \
           grep -v 'Switched to workspace' | \
           awk '$1~/^Warnings:$/ {exit} {print}' | \
           grep -v 'WARN detected' 1> output_values.json        

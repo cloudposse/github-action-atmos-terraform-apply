@@ -393,7 +393,6 @@ runs:
       if: env.ACTIONS_ENABLED == 'true'
       id: apply
       shell: bash
-      #working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         set +e
 

@@ -405,6 +405,19 @@ runs:
         echo "DEBUG: GitHub Action Path: ${GITHUB_ACTION_PATH}"
         echo "DEBUG: GitHub Workspace: ${{ github.workspace }}"
         echo "DEBUG: Debug mode: ${{ inputs.debug }}"
+        
+        echo "DEBUG: Displaying atmos.yaml configuration file:"
+        echo "DEBUG: Atmos config path: ${{ inputs.atmos-config-path }}"
+        if [[ -f "${{ inputs.atmos-config-path }}" ]]; then
+          echo "DEBUG: atmos.yaml file exists, displaying contents:"
+          cat "${{ inputs.atmos-config-path }}"
+        else
+          echo "DEBUG: ERROR - atmos.yaml file does not exist at: ${{ inputs.atmos-config-path }}"
+          echo "DEBUG: Listing files in current directory:"
+          ls -la
+          echo "DEBUG: Listing files in workspace root:"
+          ls -la "${{ github.workspace }}"
+        fi
 
         # Remove the environment file from the cache to avoid conflicts with workspace select
         echo "DEBUG: Removing .terraform/environment file..."

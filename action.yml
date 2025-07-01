@@ -47,6 +47,10 @@ inputs:
       not supplied by the user. When running this action on github.com, the default value is sufficient. When running on
       GHES, you can pass a personal access token for github.com if you are experiencing rate limiting.
     default: ${{ github.server_url == 'https://github.com' && github.token || '' }}
+  plan-storage:
+    description: "Enable plan storage. Default: 'true'. Set to 'false' to disable plan storage."
+    required: false
+    default: 'true'
 outputs:
   status:
     description: Apply Status. Either 'succeeded' or 'failed'
@@ -251,6 +255,7 @@ runs:
                 fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == ''  ||
                 fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 'null' ) &&
         env.ACTIONS_ENABLED == 'true' &&
+        inputs.plan-storage == 'true' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-state-role != '' &&
@@ -262,7 +267,7 @@ runs:
         mask-aws-account-id: "no"
 
     - name: Retrieve Plan
-      if: ${{ env.ACTIONS_ENABLED == 'true' }}
+      if: ${{ env.ACTIONS_ENABLED == 'true' && inputs.plan-storage == 'true'}}
       uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
       with:
@@ -282,7 +287,7 @@ runs:
         bucketName: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-bucket }}
 
     - name: Retrieve Lockfile
-      if: ${{ env.ACTIONS_ENABLED == 'true' }}
+      if: ${{ env.ACTIONS_ENABLED == 'true' && inputs.plan-storage == 'true'}}
       uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
       with:

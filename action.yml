@@ -71,7 +71,7 @@ runs:
     - name: Set atmos cli config path vars
       shell: bash
       run: |-
-        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ github.workspace }}/${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
+        echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
 
     - name: Install Atmos
       uses: cloudposse/github-action-setup-atmos@v2
@@ -397,79 +397,10 @@ runs:
       run: |
         set +e
 
-        echo "=== DEBUG: Starting Terraform Apply Step ==="
-        echo "DEBUG: Working directory: $(pwd)"
-        echo "DEBUG: Component path: ${{ steps.vars.outputs.component_path }}"
-        echo "DEBUG: Component: ${{ inputs.component }}"
-        echo "DEBUG: Stack: ${{ inputs.stack }}"
-        echo "DEBUG: GitHub Action Path: ${GITHUB_ACTION_PATH}"
-        echo "DEBUG: GitHub Workspace: ${{ github.workspace }}"
-        echo "DEBUG: Debug mode: ${{ inputs.debug }}"
-        
-        echo "DEBUG: Displaying atmos.yaml configuration file:"
-        echo "DEBUG: Atmos config path input: ${{ inputs.atmos-config-path }}"
-        echo "DEBUG: ATMOS_CLI_CONFIG_PATH env var: $ATMOS_CLI_CONFIG_PATH"
-        echo "DEBUG: ATMOS_BASE_PATH env var: $ATMOS_BASE_PATH"
-        
-        # Try to find atmos.yaml using the environment variable first, then fallback to workspace root
-        ATMOS_CONFIG_FILE=""
-        if [[ -n "$ATMOS_CLI_CONFIG_PATH" && -f "$ATMOS_CLI_CONFIG_PATH" ]]; then
-          ATMOS_CONFIG_FILE="$ATMOS_CLI_CONFIG_PATH"
-          echo "DEBUG: Found atmos.yaml using ATMOS_CLI_CONFIG_PATH: $ATMOS_CONFIG_FILE"
-        elif [[ -f "${{ github.workspace }}/${{ inputs.atmos-config-path }}" ]]; then
-          ATMOS_CONFIG_FILE="${{ github.workspace }}/${{ inputs.atmos-config-path }}"
-          echo "DEBUG: Found atmos.yaml in workspace root: $ATMOS_CONFIG_FILE"
-        elif [[ -f "${{ inputs.atmos-config-path }}" ]]; then
-          ATMOS_CONFIG_FILE="${{ inputs.atmos-config-path }}"
-          echo "DEBUG: Found atmos.yaml at relative path: $ATMOS_CONFIG_FILE"
-        else
-          echo "DEBUG: ERROR - atmos.yaml file not found"
-          echo "DEBUG: Tried paths:"
-          echo "DEBUG:   - ATMOS_CLI_CONFIG_PATH: $ATMOS_CLI_CONFIG_PATH"
-          echo "DEBUG:   - Workspace root: ${{ github.workspace }}/${{ inputs.atmos-config-path }}"
-          echo "DEBUG:   - Relative path: ${{ inputs.atmos-config-path }}"
-          echo "DEBUG: Listing files in current directory:"
-          ls -la
-          echo "DEBUG: Listing files in workspace root:"
-          ls -la "${{ github.workspace }}"
-        fi
-        
-        if [[ -n "$ATMOS_CONFIG_FILE" ]]; then
-          echo "DEBUG: atmos.yaml file found, displaying contents:"
-          cat "$ATMOS_CONFIG_FILE"
-        fi
-        
-        echo "DEBUG: Checking for other atmos config files:"
-        find "${{ github.workspace }}" -name "atmos.yaml" -o -name "atmos.yml" 2>/dev/null || echo "DEBUG: No other atmos config files found"
-        
-        echo "DEBUG: Checking stacks directory structure:"
-        if [[ -d "${{ github.workspace }}/stacks" ]]; then
-          echo "DEBUG: Stacks directory exists, listing contents:"
-          find "${{ github.workspace }}/stacks" -type f -name "*.yaml" -o -name "*.yml" | head -20
-        else
-          echo "DEBUG: Stacks directory does not exist"
-        fi
-        
-        echo "DEBUG: Checking if there are any stack files with imports:"
-        if [[ -d "${{ github.workspace }}/stacks" ]]; then
-          echo "DEBUG: Searching for import statements in stack files:"
-          grep -r "import:" "${{ github.workspace }}/stacks" --include="*.yaml" --include="*.yml" | head -10 || echo "DEBUG: No import statements found"
-        fi
-        
-        echo "DEBUG: Verifying environment variables before Atmos commands:"
-        echo "DEBUG: ATMOS_CLI_CONFIG_PATH = '$ATMOS_CLI_CONFIG_PATH'"
-        echo "DEBUG: ATMOS_BASE_PATH = '$ATMOS_BASE_PATH'"
-        echo "DEBUG: All environment variables containing 'ATMOS':"
-        env | grep -i atmos || echo "DEBUG: No ATMOS environment variables found"
-
         # Remove the environment file from the cache to avoid conflicts with workspace select
         rm -f ./.terraform/environment        
         
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
-
-        echo "DEBUG: Environment variables right before tfcmt/atmos command:"
-        echo "DEBUG: ATMOS_CLI_CONFIG_PATH = '$ATMOS_CLI_CONFIG_PATH'"
-        echo "DEBUG: ATMOS_BASE_PATH = '$ATMOS_BASE_PATH'"
 
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
@@ -486,6 +417,7 @@ runs:
           apply -- \
             atmos terraform apply ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
+            --config "$ATMOS_CLI_CONFIG_PATH" \
             -auto-approve \
             -input=false \
             -no-color \
@@ -496,12 +428,7 @@ runs:
         set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
-        
-        echo "DEBUG: Environment variables before atmos terraform output command:"
-        echo "DEBUG: ATMOS_CLI_CONFIG_PATH = '$ATMOS_CLI_CONFIG_PATH'"
-        echo "DEBUG: ATMOS_BASE_PATH = '$ATMOS_BASE_PATH'"
-        
-        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \
+        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --config "$ATMOS_CLI_CONFIG_PATH" --skip-init -- -json -compact-warnings -no-color  | \
           grep -v 'Switched to workspace' | \
           awk '$1~/^Warnings:$/ {exit} {print}' | \
           grep -v 'WARN detected' 1> output_values.json        

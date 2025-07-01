@@ -397,6 +397,48 @@ runs:
       run: |
         set +e
 
+        echo "=== DEBUG: Starting Terraform Apply Step ==="
+        echo "DEBUG: Working directory: $(pwd)"
+        echo "DEBUG: Component path: ${{ steps.vars.outputs.component_path }}"
+        echo "DEBUG: Component: ${{ inputs.component }}"
+        echo "DEBUG: Stack: ${{ inputs.stack }}"
+        echo "DEBUG: GitHub Action Path: ${GITHUB_ACTION_PATH}"
+        echo "DEBUG: GitHub Workspace: ${{ github.workspace }}"
+        echo "DEBUG: Debug mode: ${{ inputs.debug }}"
+        
+        echo "DEBUG: Displaying atmos.yaml configuration file:"
+        echo "DEBUG: Atmos config path input: ${{ inputs.atmos-config-path }}"
+        echo "DEBUG: ATMOS_CLI_CONFIG_PATH env var: $ATMOS_CLI_CONFIG_PATH"
+        echo "DEBUG: ATMOS_BASE_PATH env var: $ATMOS_BASE_PATH"
+        
+        # Try to find atmos.yaml using the environment variable first, then fallback to workspace root
+        ATMOS_CONFIG_FILE=""
+        if [[ -n "$ATMOS_CLI_CONFIG_PATH" && -f "$ATMOS_CLI_CONFIG_PATH" ]]; then
+          ATMOS_CONFIG_FILE="$ATMOS_CLI_CONFIG_PATH"
+          echo "DEBUG: Found atmos.yaml using ATMOS_CLI_CONFIG_PATH: $ATMOS_CONFIG_FILE"
+        elif [[ -f "${{ github.workspace }}/${{ inputs.atmos-config-path }}" ]]; then
+          ATMOS_CONFIG_FILE="${{ github.workspace }}/${{ inputs.atmos-config-path }}"
+          echo "DEBUG: Found atmos.yaml in workspace root: $ATMOS_CONFIG_FILE"
+        elif [[ -f "${{ inputs.atmos-config-path }}" ]]; then
+          ATMOS_CONFIG_FILE="${{ inputs.atmos-config-path }}"
+          echo "DEBUG: Found atmos.yaml at relative path: $ATMOS_CONFIG_FILE"
+        else
+          echo "DEBUG: ERROR - atmos.yaml file not found"
+          echo "DEBUG: Tried paths:"
+          echo "DEBUG:   - ATMOS_CLI_CONFIG_PATH: $ATMOS_CLI_CONFIG_PATH"
+          echo "DEBUG:   - Workspace root: ${{ github.workspace }}/${{ inputs.atmos-config-path }}"
+          echo "DEBUG:   - Relative path: ${{ inputs.atmos-config-path }}"
+          echo "DEBUG: Listing files in current directory:"
+          ls -la
+          echo "DEBUG: Listing files in workspace root:"
+          ls -la "${{ github.workspace }}"
+        fi
+        
+        if [[ -n "$ATMOS_CONFIG_FILE" ]]; then
+          echo "DEBUG: atmos.yaml file found, displaying contents:"
+          cat "$ATMOS_CONFIG_FILE"
+        fi
+
         # Remove the environment file from the cache to avoid conflicts with workspace select
         rm -f ./.terraform/environment        
         

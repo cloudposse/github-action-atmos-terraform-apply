@@ -412,7 +412,7 @@ runs:
           apply -- \
             atmos terraform apply ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
-            -auto-approve \
+            ${{ steps.vars.outputs.plan_file }} \
             -input=false \
             -no-color \
         &> ${TERRAFORM_OUTPUT_FILE}

@@ -412,6 +412,7 @@ runs:
           apply -- \
             atmos terraform deploy ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
+            --from-plan \
             --planfile ${{ steps.vars.outputs.plan_file }} \
             -input=false \
             -no-color \

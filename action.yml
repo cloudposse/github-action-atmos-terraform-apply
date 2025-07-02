@@ -410,9 +410,9 @@ runs:
           --output "${{ github.workspace }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
-            atmos terraform apply ${{ inputs.component }} \
+            atmos terraform deploy ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
-            ${{ steps.vars.outputs.plan_file }} \
+            --planfile ${{ steps.vars.outputs.plan_file }} \
             -input=false \
             -no-color \
         &> ${TERRAFORM_OUTPUT_FILE}

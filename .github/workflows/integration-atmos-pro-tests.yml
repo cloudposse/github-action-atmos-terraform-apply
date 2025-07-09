@@ -47,7 +47,7 @@ jobs:
           cat ${{ runner.temp }}/atmos.yaml
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v4
+        uses: cloudposse/github-action-atmos-terraform-plan@v5
         with:
           component: "foobar-atmos-pro"
           stack: "plat-ue2-sandbox"
@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: nick-fields/assert-action@v2
         with:
-          expected: 'succeeded'
+          expected: "succeeded"
           actual: "${{ needs.test.outputs.result }}"
 
   teardown:
@@ -89,4 +89,4 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Tear down
-        run: echo "Do Tear down" 
+        run: echo "Do Tear down"

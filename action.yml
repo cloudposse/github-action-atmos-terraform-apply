@@ -22,7 +22,7 @@ inputs:
   atmos-version:
     description: The version of atmos to install
     required: false
-    default: ">= 1.158.0"
+    default: ">= 1.184.0"
   atmos-config-path:
     description: The path to the atmos.yaml file
     required: true
@@ -238,7 +238,8 @@ runs:
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
         COMPONENT_CACHE_KEY=$(basename "${{ fromJson(steps.atmos-settings.outputs.settings).component-path }}")
-        PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
+        PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG.planfile"
+        RETRIEVED_PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         LOCK_FILE="${COMPONENT_PATH}/.terraform.lock.hcl"
 
         echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
@@ -247,6 +248,7 @@ runs:
         echo "component_path=${COMPONENT_PATH}" >> $GITHUB_OUTPUT
         echo "cache-key=${COMPONENT_CACHE_KEY}" >> $GITHUB_OUTPUT
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
+        echo "retrieved_plan_file=$RETRIEVED_PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
     - name: Configure Plan AWS Credentials
@@ -318,6 +320,42 @@ runs:
         role-session-name: "atmos-terraform-apply-gitops"
         mask-aws-account-id: "no"
 
+    - name: Cache .terraform
+      id: cache
+      uses: actions/cache@v4
+      if: env.ACTIONS_ENABLED == 'true'
+      with:
+        path: |
+          ${{ steps.vars.outputs.component_path }}/.terraform
+        key: ${{ steps.vars.outputs.cache-key }}
+
+    - name: Plan prepare
+      if: env.ACTIONS_ENABLED == 'true'
+      id: plan-diff
+      shell: bash
+      run: |
+        set +e
+
+        # Remove the environment file from the cache to avoid conflicts with workspace select
+        rm -f ./.terraform/environment
+
+        if [[ "${{ inputs.plan-storage == 'true' }}" == "true" ]]; then
+          atmos terraform plan-diff ${{ inputs.component }} \
+            --stack ${{ inputs.stack }} \
+            -input=false \
+            -no-color \
+            --orig ${{ steps.vars.outputs.retrieved_plan_file }}
+          PLAN_CHANGED=$?
+        else
+          atmos terraform plan ${{ inputs.component }} \
+            --stack ${{ inputs.stack }} \
+            -input=false \
+            -no-color
+          PLAN_CHANGED=$?
+        fi
+
+        echo "plan_changed=$PLAN_CHANGED" >> $GITHUB_OUTPUT
+
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true'
       shell: bash
@@ -335,7 +373,7 @@ runs:
         api-key: ${{ inputs.infracost-api-key }}
 
     - name: Convert PLANFILE to JSON
-      if: ${{ fromJson(steps.atmos-settings.outputs.settings).enable-infracost == 'true' && steps.atmos-plan.outputs.changes == 'true' }}
+      if: env.INFRACOST_ENABLED == 'true'
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -380,15 +418,6 @@ runs:
         echo "infracost_details_diff_breakdown=$INFRACOST_DETAILS_DIFF_BREAKDOWN" >> "$GITHUB_OUTPUT"
         echo "infracost_diff_total_monthly_cost=$INFRACOST_DIFF_TOTAL_MONTHLY_COST" >> "$GITHUB_OUTPUT"
 
-    - name: Cache .terraform
-      id: cache
-      uses: actions/cache@v4
-      if: env.ACTIONS_ENABLED == 'true'
-      with:
-        path: |
-          ${{ steps.vars.outputs.component_path }}/.terraform
-        key: ${{ steps.vars.outputs.cache-key }}
-
     - name: Terraform Apply
       if: env.ACTIONS_ENABLED == 'true'
       id: apply
@@ -400,6 +429,10 @@ runs:
         rm -f ./.terraform/environment        
         
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
+
+        if [[ "${{steps.plan-diff.outputs.plan_changed}}" != "0" ]]; then
+          exit 1
+        fi
 
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
@@ -414,11 +447,11 @@ runs:
           --output "${{ github.workspace }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
-            atmos terraform apply ${{ inputs.component }} \
+            atmos terraform deploy ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
-            -auto-approve \
             -input=false \
             -no-color \
+            --planfile ${{ steps.vars.outputs.plan_file }}
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?

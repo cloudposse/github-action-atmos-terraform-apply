@@ -462,16 +462,19 @@ runs:
           --output "${{ github.workspace }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
-            atmos terraform apply ${{ inputs.component }} \
+            atmos terraform deploy ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
-            --auto-approve \
             -input=false \
-            -no-color
+            -no-color \
+            --planfile new.${{ steps.vars.outputs.plan_file }} \
+            --skip-init
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?
 
         set -e
+
+        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
         atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \

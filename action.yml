@@ -409,6 +409,7 @@ runs:
     - name: Set Infracost Variables
       if: env.INFRACOST_ENABLED == 'true'
       id: infracost-diff
+      working-directory: ${{ steps.vars.outputs.component_path }}
       shell: bash
       run: |
         if [[ "${{ fromJson(steps.atmos-settings.outputs.settings).enable-infracost }}" == "true" ]]; then
@@ -455,7 +456,7 @@ runs:
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
-            --planfile ${{ steps.vars.outputs.plan_file }}
+            --from-plan
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?

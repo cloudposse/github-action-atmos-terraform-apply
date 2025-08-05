@@ -476,7 +476,7 @@ runs:
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init
+        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                 

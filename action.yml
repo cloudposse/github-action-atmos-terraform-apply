@@ -238,7 +238,7 @@ runs:
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
         COMPONENT_CACHE_KEY=$(basename "${{ fromJson(steps.atmos-settings.outputs.settings).component-path }}")
-        PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG.planfile"
+        PLAN_FILE="$COMPONENT_SLUG.planfile"
         RETRIEVED_PLAN_FILENAME="$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         RETRIEVED_PLAN_FILE="${COMPONENT_PATH}/${RETRIEVED_PLAN_FILENAME}"
         LOCK_FILE="${COMPONENT_PATH}/.terraform.lock.hcl"
@@ -253,7 +253,7 @@ runs:
         echo "retrieved_plan_file=$RETRIEVED_PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
-    - name: Configure Plan AWS Credentials
+    - name: Configure Plan Storage AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       if: ${{ ( fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' ||
                 fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == ''  ||
@@ -384,6 +384,7 @@ runs:
     - name: Generate Infracost Diff
       if: env.INFRACOST_ENABLED == 'true'
       shell: bash
+      working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         infracost diff \
           --path="${{ steps.vars.outputs.plan_file }}.json" \
@@ -399,6 +400,7 @@ runs:
     - name: Debug Infracost
       if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true'
       shell: bash
+      working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         cat ${{ steps.vars.outputs.plan_file }}.json
         cat /tmp/infracost.txt

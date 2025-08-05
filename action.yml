@@ -341,14 +341,10 @@ runs:
         # Remove the environment file from the cache to avoid conflicts with workspace select
         rm -f ./.terraform/environment
 
-        ls -l ${{ steps.vars.outputs.component_path }}
-
         atmos terraform plan ${{ inputs.component }} \
           --stack ${{ inputs.stack }} \
           -input=false \
           -no-color
-
-        ls -l ${{ steps.vars.outputs.component_path }}
 
         PLAN_CHANGED=$?
 
@@ -357,8 +353,9 @@ runs:
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
-            --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
-            --new ${{ steps.vars.outputs.plan_file }}
+            --skip-init \
+            --orig=${{ steps.vars.outputs.retrieved_plan_filename }} \
+            --new=${{ steps.vars.outputs.plan_file }}
           PLAN_CHANGED=$?
         fi
 

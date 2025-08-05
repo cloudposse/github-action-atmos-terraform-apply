@@ -474,7 +474,11 @@ runs:
 
         set -e
 
+        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
         atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init
+
+        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
         atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \

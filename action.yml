@@ -350,12 +350,12 @@ runs:
 
         if [[ "${{ inputs.plan-storage == 'true' }}" == "true" ]]; then
           atmos terraform plan-diff ${{ inputs.component }} \
-            --skip-init \          
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
-            --new ${{ steps.vars.outputs.plan_file }}
+            --new ${{ steps.vars.outputs.plan_file }} \
+            --skip-init
           PLAN_CHANGED=$?
         fi
 

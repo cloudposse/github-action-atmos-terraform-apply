@@ -482,7 +482,7 @@ runs:
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-        cat output_values.json        
+        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml ./
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./

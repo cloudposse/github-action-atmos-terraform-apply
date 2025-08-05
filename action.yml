@@ -341,18 +341,20 @@ runs:
         # Remove the environment file from the cache to avoid conflicts with workspace select
         rm -f ./.terraform/environment
 
+        atmos terraform plan ${{ inputs.component }} \
+          --stack ${{ inputs.stack }} \
+          -input=false \
+          -no-color
+
+        PLAN_CHANGED=$?
+        
         if [[ "${{ inputs.plan-storage == 'true' }}" == "true" ]]; then
           atmos terraform plan-diff ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }}
-          PLAN_CHANGED=$?
-        else
-          atmos terraform plan ${{ inputs.component }} \
-            --stack ${{ inputs.stack }} \
-            -input=false \
-            -no-color
+            --new ${{ steps.vars.outputs.plan_file }}
           PLAN_CHANGED=$?
         fi
 

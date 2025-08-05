@@ -349,12 +349,15 @@ runs:
         PLAN_CHANGED=$?
 
         if [[ "${{ inputs.plan-storage == 'true' }}" == "true" ]]; then
+
+          cp ${{ steps.vars.outputs.component_path }}/${{ steps.vars.outputs.plan_file }} ${{ steps.vars.outputs.component_path }}/new.${{ steps.vars.outputs.plan_file }}
+
           atmos terraform plan-diff ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
-            --new ${{ steps.vars.outputs.plan_file }} \
+            --new new.${{ steps.vars.outputs.plan_file }} \
             --skip-init
           PLAN_CHANGED=$?
         fi

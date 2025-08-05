@@ -465,8 +465,9 @@ runs:
             atmos terraform apply ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
             -input=false \
-            -no-color \            
-            new.${{ steps.vars.outputs.plan_file }}
+            -no-color \
+            --planfile new.${{ steps.vars.outputs.plan_file }} \
+            --skip-init
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?

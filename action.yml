@@ -354,8 +354,8 @@ runs:
             -input=false \
             -no-color \
             --skip-init \
-            --orig=${{ steps.vars.outputs.retrieved_plan_filename }} \
-            --new=${{ steps.vars.outputs.plan_file }}
+            --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
+            --new ${{ steps.vars.outputs.plan_file }}
           PLAN_CHANGED=$?
         fi
 

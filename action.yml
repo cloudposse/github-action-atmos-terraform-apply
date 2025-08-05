@@ -356,6 +356,8 @@ runs:
           PLAN_CHANGED=$?
         fi
 
+        ls -l ${{ steps.vars.outputs.component_path }}
+
         echo "plan_changed=$PLAN_CHANGED" >> $GITHUB_OUTPUT
 
     - name: Check Whether Infracost is Enabled
@@ -438,6 +440,8 @@ runs:
         if [[ "${{steps.plan-diff.outputs.plan_changed}}" != "0" ]]; then
           exit 1
         fi
+
+        ls -l ${{ steps.vars.outputs.component_path }}
 
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \

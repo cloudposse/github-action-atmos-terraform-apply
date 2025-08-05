@@ -466,7 +466,7 @@ runs:
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
-            --from-plan
+            --planfile new.${{ steps.vars.outputs.plan_file }}
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?

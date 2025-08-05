@@ -239,7 +239,7 @@ runs:
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
         COMPONENT_CACHE_KEY=$(basename "${{ fromJson(steps.atmos-settings.outputs.settings).component-path }}")
         PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG.planfile"
-        RETRIEVED_PLAN_FILE="${COMPONENT_PATH}/$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
+        RETRIEVED_PLAN_FILE="$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         LOCK_FILE="${COMPONENT_PATH}/.terraform.lock.hcl"
 
         echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT

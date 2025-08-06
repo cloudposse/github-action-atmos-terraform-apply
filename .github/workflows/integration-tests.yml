@@ -15,9 +15,6 @@ permissions:
   id-token: write
   contents: read
 
-concurrency:
-  group: ${{ github.ref }}
-
 jobs:
   test:
     runs-on: ubuntu-latest

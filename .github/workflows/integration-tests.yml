@@ -32,6 +32,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - shell: bash
+        id: env
         run: |
           mkdir -p ${{ runner.temp }}
           cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml          
@@ -44,7 +45,7 @@ jobs:
           sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
-          echo "TF_VAR_seed=${{ env.GITHUB_RUN_ID }}-${{ env.GITHUB_RUN_ATTEMPT }}" >> $GITHUB_ENV
+          echo "seed=${{ env.GITHUB_RUN_ID }}-${{ env.GITHUB_RUN_ATTEMPT }}" >> $GITHUB_OUTPUT
 
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v4
@@ -54,7 +55,7 @@ jobs:
           atmos-config-path: ${{ runner.temp }}
           debug: true
         env:
-          TF_VAR_seed: ${{ env.TF_VAR_seed }}
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
 
 
       - uses: actions/checkout@v4

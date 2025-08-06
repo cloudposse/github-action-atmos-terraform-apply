@@ -4,6 +4,9 @@ sections:
   show:
     - outputs
 
+content: |-
+  {{ .Outputs }}
+
 output:
   file: "atmos-apply-summary.md"
   mode: inject

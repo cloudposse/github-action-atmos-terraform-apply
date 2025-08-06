@@ -482,7 +482,7 @@ runs:
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml ./
+        cat output_values.json
 
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

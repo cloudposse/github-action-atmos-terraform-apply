@@ -383,11 +383,12 @@ runs:
         api-key: ${{ inputs.infracost-api-key }}
 
     - name: Convert PLANFILE to JSON
-      if: env.INFRACOST_ENABLED == 'true'
+      # if: env.INFRACOST_ENABLED == 'true'
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.vars.outputs.plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
+        cat ${{ steps.vars.outputs.plan_file }}.json
 
     - name: Generate Infracost Diff
       if: env.INFRACOST_ENABLED == 'true'
@@ -480,12 +481,6 @@ runs:
           awk '$1~/^Warnings:$/ {exit} {print}' | \
           grep -v 'WARN detected' 1> ${{ steps.vars.outputs.component_path }}/output_values.json        
 
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
-        cat ${{ steps.vars.outputs.component_path }}/output_values.json
-
-
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         cd ${{ steps.vars.outputs.component_path }}
         terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
         cd -

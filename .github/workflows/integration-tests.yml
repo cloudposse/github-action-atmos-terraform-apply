@@ -45,7 +45,7 @@ jobs:
           sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
-          echo "seed=${{ env.GITHUB_RUN_ID }}-${{ env.GITHUB_RUN_ATTEMPT }}" >> $GITHUB_OUTPUT
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> $GITHUB_OUTPUT
 
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v4

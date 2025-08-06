@@ -8,7 +8,8 @@ terraform:
     s3:
       bucket: cptest-core-ue2-root-tfstate-plat
       dynamodb_table: cptest-core-ue2-root-tfstate-plat-lock
-      role_arn: arn:aws:iam::822777368227:role/cptest-core-gbl-root-tfstate-plat
+      assume_role:
+        role_arn: arn:aws:iam::822777368227:role/cptest-core-gbl-root-tfstate-plat
       encrypt: true
       key: terraform/terraform.tfstate
       acl: bucket-owner-full-control

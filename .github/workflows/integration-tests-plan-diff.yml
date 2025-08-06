@@ -3,8 +3,8 @@ name: "Integration Tests - Plan failed"
 on:
   workflow_dispatch: {}
 
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 env:
   AWS_REGION: us-east-2
@@ -41,14 +41,18 @@ jobs:
           sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT          
+
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v4
         with:
-          component: "foobar"
+          component: "foobar-plan-diff"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
-
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+            
       - shell: bash
         run: |
           mkdir -p ${{ runner.temp }}
@@ -78,3 +82,6 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+  

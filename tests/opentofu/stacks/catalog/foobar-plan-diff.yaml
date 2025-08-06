@@ -1,6 +1,6 @@
 components:
   terraform:
-    foobar:
+    foobar-plan-diff:
       settings:
         github:
           actions_enabled: true

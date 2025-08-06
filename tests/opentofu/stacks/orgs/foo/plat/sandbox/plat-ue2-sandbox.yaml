@@ -1,5 +1,6 @@
 import:
   - catalog/foobar
+  - catalog/foobar-plan-diff
   - catalog/foobar-atmos-pro
 
 terraform:

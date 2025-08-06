@@ -44,6 +44,8 @@ jobs:
           sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT          
+
           cat ${{ runner.temp }}/atmos.yaml
 
       - name: Plan Atmos Component
@@ -52,6 +54,8 @@ jobs:
           component: "foobar-atmos-pro"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
 
       - uses: actions/checkout@v4
         with:
@@ -70,7 +74,9 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           atmos-version: ">= 1.174.0"
-
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+  
     outputs:
       result: ${{ steps.current.outputs.status }}
 

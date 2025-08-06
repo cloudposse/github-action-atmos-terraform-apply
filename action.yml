@@ -486,7 +486,9 @@ runs:
 
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ${{ steps.vars.outputs.component_path }}
+        cd ${{ steps.vars.outputs.component_path }}
+        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
+        cd -
         
         sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md

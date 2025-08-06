@@ -4,9 +4,6 @@ sections:
   show:
     - outputs
 
-content: |-
-  {{ .Outputs }}
-
 output:
   file: "atmos-apply-summary.md"
   mode: inject
@@ -18,7 +15,7 @@ output:
 
 output-values:
   enabled: true
-  from: "output_values.json"
+  from: output_values.json
 
 sort:
   enabled: true

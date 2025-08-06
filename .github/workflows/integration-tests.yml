@@ -74,3 +74,6 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+  

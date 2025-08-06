@@ -47,6 +47,7 @@ jobs:
           component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          debug: true
 
       - uses: actions/checkout@v4
         with:

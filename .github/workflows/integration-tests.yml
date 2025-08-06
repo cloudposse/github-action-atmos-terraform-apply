@@ -51,6 +51,8 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+        env:
+          TF_VAR_seed: ${{ env.GITHUB_RUN_ID }}-${{ env.GITHUB_RUN_ATTEMPT }}
 
       - uses: actions/checkout@v4
         with:

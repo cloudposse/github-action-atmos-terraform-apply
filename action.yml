@@ -478,15 +478,15 @@ runs:
         atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \
           grep -v 'Switched to workspace' | \
           awk '$1~/^Warnings:$/ {exit} {print}' | \
-          grep -v 'WARN detected' 1> output_values.json        
+          grep -v 'WARN detected' 1> ${{ steps.vars.outputs.component_path }}/output_values.json        
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-        cat output_values.json
+        cat ${{ steps.vars.outputs.component_path }}/output_values.json
 
 
         echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
+        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ${{ steps.vars.outputs.component_path }}
         
         sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md

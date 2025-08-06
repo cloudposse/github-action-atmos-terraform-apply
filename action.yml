@@ -367,7 +367,9 @@ runs:
             --skip-init
           PLAN_CHANGED=$?
         fi
-
+        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        echo "PLAN_CHANGED: $PLAN_CHANGED"
+        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         if [[ "${PLAN_CHANGED}" == "0" ]]; then
           echo "plan_changed=false" >> $GITHUB_OUTPUT
         else

@@ -3,8 +3,8 @@ name: "Integration Tests - Plan failed"
 on:
   workflow_dispatch: {}
 
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 env:
   AWS_REGION: us-east-2
@@ -14,6 +14,9 @@ env:
 permissions:
   id-token: write
   contents: read
+
+concurrency:
+  group: ${{ github.ref }}
 
 jobs:
   test:

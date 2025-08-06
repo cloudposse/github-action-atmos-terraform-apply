@@ -47,7 +47,7 @@ jobs:
           cat ${{ runner.temp }}/atmos.yaml
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v6
+        uses: cloudposse/github-action-atmos-terraform-plan@v5
         with:
           component: "foobar-atmos-pro"
           stack: "plat-ue2-sandbox"

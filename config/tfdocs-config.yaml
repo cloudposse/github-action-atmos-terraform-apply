@@ -15,7 +15,7 @@ output:
 
 output-values:
   enabled: true
-  from: output_values.json
+  from: "output_values.json"
 
 sort:
   enabled: true

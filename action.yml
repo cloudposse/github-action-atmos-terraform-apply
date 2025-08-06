@@ -474,7 +474,7 @@ runs:
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
-            --planfile ${{ steps.vars.outputs.renewed_plan_file }} \
+            --planfile ${{ steps.vars.outputs.renewed_plan_filename }} \
             --skip-init \
         &> ${TERRAFORM_OUTPUT_FILE}
         

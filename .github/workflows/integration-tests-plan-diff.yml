@@ -1,4 +1,4 @@
-name: "Integration Tests"
+name: "Integration Tests - Plan failed"
 
 on:
   workflow_dispatch: {}
@@ -31,7 +31,7 @@ jobs:
       - shell: bash
         run: |
           mkdir -p ${{ runner.temp }}
-          cp ./tests/${{ matrix.platform  }}/a/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          cp ./tests/${{ matrix.platform  }}/b/atmos.yaml ${{ runner.temp }}/atmos.yaml          
           sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
           sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
@@ -48,6 +48,19 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+
+      - shell: bash
+        run: |
+          mkdir -p ${{ runner.temp }}
+          cp ./tests/${{ matrix.platform  }}/a/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_ROLE__#${{ secrets.TERRAFORM_STATE_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
       - uses: actions/checkout@v4
         with:

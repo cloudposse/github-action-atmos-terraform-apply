@@ -238,9 +238,12 @@ runs:
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
         COMPONENT_CACHE_KEY=$(basename "${{ fromJson(steps.atmos-settings.outputs.settings).component-path }}")
-        PLAN_FILE="$COMPONENT_SLUG.planfile"
+        PLAN_FILENAME="$COMPONENT_SLUG.planfile"
+        PLAN_FILE="${COMPONENT_PATH}/${PLAN_FILENAME}"
         RETRIEVED_PLAN_FILENAME="$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         RETRIEVED_PLAN_FILE="${COMPONENT_PATH}/${RETRIEVED_PLAN_FILENAME}"
+        RENEWED_PLAN_FILENAME="new.${RETRIEVED_PLAN_FILENAME}"
+        RENEWED_PLAN_FILE="${COMPONENT_PATH}/${RENEWED_PLAN_FILENAME}"
         LOCK_FILE="${COMPONENT_PATH}/.terraform.lock.hcl"
 
         echo "stack_name=$STACK_NAME" >> $GITHUB_OUTPUT
@@ -248,9 +251,12 @@ runs:
         echo "component_slug=$COMPONENT_SLUG" >> $GITHUB_OUTPUT
         echo "component_path=${COMPONENT_PATH}" >> $GITHUB_OUTPUT
         echo "cache-key=${COMPONENT_CACHE_KEY}" >> $GITHUB_OUTPUT
+        echo "plan_filename=$PLAN_FILENAME" >> $GITHUB_OUTPUT
         echo "plan_file=$PLAN_FILE" >> $GITHUB_OUTPUT
         echo "retrieved_plan_filename=$RETRIEVED_PLAN_FILENAME" >> $GITHUB_OUTPUT
         echo "retrieved_plan_file=$RETRIEVED_PLAN_FILE" >> $GITHUB_OUTPUT
+        echo "renewed_plan_filename=$RENEWED_PLAN_FILENAME" >> $GITHUB_OUTPUT
+        echo "renewed_plan_file=$RENEWED_PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
     - name: Configure Plan Storage AWS Credentials
@@ -348,26 +354,28 @@ runs:
 
         PLAN_CHANGED=$?
 
-        if [[ "${{ inputs.plan-storage == 'true' }}" == "true" ]]; then
+        if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
 
-          cp ${{ steps.vars.outputs.component_path }}/${{ steps.vars.outputs.plan_file }} ${{ steps.vars.outputs.component_path }}/new.${{ steps.vars.outputs.plan_file }}
+          cp ${{ steps.vars.outputs.plan_file }} ${{ steps.vars.outputs.renewed_plan_file }}
 
           atmos terraform plan-diff ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
-            --new new.${{ steps.vars.outputs.plan_file }} \
+            --new ${{ steps.vars.outputs.renewed_plan_filename }} \
             --skip-init
           PLAN_CHANGED=$?
         fi
 
-        ls -l ${{ steps.vars.outputs.component_path }}
-
-        echo "plan_changed=$PLAN_CHANGED" >> $GITHUB_OUTPUT
+        if [[ "${PLAN_CHANGED}" == "0" ]]; then
+          echo "plan_changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "plan_changed=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Check Whether Infracost is Enabled
-      if: env.ACTIONS_ENABLED == 'true'
+      if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       shell: bash
       run: |
         if [[ "${{ fromJson(steps.atmos-settings.outputs.settings).enable-infracost }}" == "true" ]]; then
@@ -377,20 +385,20 @@ runs:
         fi
 
     - name: Setup Infracost
-      if: env.INFRACOST_ENABLED == 'true'
+      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       uses: infracost/actions/setup@v3
       with:
         api-key: ${{ inputs.infracost-api-key }}
 
     - name: Convert PLANFILE to JSON
-      if: env.INFRACOST_ENABLED == 'true' || env.DEBUG_ENABLED == 'true'
+      if: env.INFRACOST_ENABLED == 'true' || env.DEBUG_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
-        ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "new.${{ steps.vars.outputs.plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
+        ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.vars.outputs.renewed_plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
 
     - name: Generate Infracost Diff
-      if: env.INFRACOST_ENABLED == 'true'
+      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -406,7 +414,7 @@ runs:
           --out-file=/tmp/infracost.json
 
     - name: Debug Infracost
-      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true'
+      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -415,7 +423,7 @@ runs:
         cat /tmp/infracost.json
 
     - name: Set Infracost Variables
-      if: env.INFRACOST_ENABLED == 'true'
+      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       id: infracost-diff
       working-directory: ${{ steps.vars.outputs.component_path }}
       shell: bash
@@ -432,7 +440,7 @@ runs:
         echo "infracost_diff_total_monthly_cost=$INFRACOST_DIFF_TOTAL_MONTHLY_COST" >> "$GITHUB_OUTPUT"
 
     - name: Terraform Apply
-      if: env.ACTIONS_ENABLED == 'true'
+      if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       id: apply
       shell: bash
       run: |
@@ -466,7 +474,7 @@ runs:
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
-            --planfile new.${{ steps.vars.outputs.plan_file }} \
+            --planfile ${{ steps.vars.outputs.renewed_plan_file }} \
             --skip-init \
         &> ${TERRAFORM_OUTPUT_FILE}
         

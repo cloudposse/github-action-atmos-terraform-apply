@@ -62,10 +62,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
+      - name: Wait 60 sec to wait s3 bucket would be consistent (read after write consistency)
         shell: bash
         run: |
-          sleep 15;
+          sleep 60;
 
       - name: Apply Atmos Component
         uses: ./

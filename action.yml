@@ -388,9 +388,6 @@ runs:
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "new.${{ steps.vars.outputs.plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        cat "${{ steps.vars.outputs.plan_file }}.json"
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
     - name: Generate Infracost Diff
       if: env.INFRACOST_ENABLED == 'true'
@@ -470,7 +467,7 @@ runs:
             -input=false \
             -no-color \
             --planfile new.${{ steps.vars.outputs.plan_file }} \
-            --skip-init
+            --skip-init \
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?

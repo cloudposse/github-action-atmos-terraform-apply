@@ -78,7 +78,7 @@ jobs:
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar"
+          component: "foobar-plan-diff"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true

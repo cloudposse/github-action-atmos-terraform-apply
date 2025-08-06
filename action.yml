@@ -451,12 +451,6 @@ runs:
         
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
 
-        if [[ "${{steps.plan-diff.outputs.plan_changed}}" != "0" ]]; then
-          exit 1
-        fi
-
-        ls -l ${{ steps.vars.outputs.component_path }}
-
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \

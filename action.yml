@@ -347,12 +347,19 @@ runs:
         # Remove the environment file from the cache to avoid conflicts with workspace select
         rm -f ./.terraform/environment
 
+        TERRAFORM_PLAN_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-output.txt"
+
         atmos terraform plan ${{ inputs.component }} \
           --stack ${{ inputs.stack }} \
           -input=false \
-          -no-color
+          -no-color \
+        &> ${TERRAFORM_PLAN_OUTPUT_FILE}
 
         PLAN_CHANGED=$?
+
+        if [[ "${PLAN_CHANGED}" != "0" ]]; then
+          echo "PLAN FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
 
         if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
 
@@ -367,13 +374,12 @@ runs:
             --skip-init
           PLAN_CHANGED=$?
         fi
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        echo "PLAN_CHANGED: $PLAN_CHANGED"
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
         if [[ "${PLAN_CHANGED}" == "0" ]]; then
           echo "plan_changed=false" >> $GITHUB_OUTPUT
         else
           echo "plan_changed=true" >> $GITHUB_OUTPUT
+          echo "PLAN DIFFERENT" >> $GITHUB_STEP_SUMMARY
         fi
 
     - name: Check Whether Infracost is Enabled
@@ -493,8 +499,6 @@ runs:
         sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
         
-        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
-        
         if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
@@ -505,7 +509,9 @@ runs:
 
         # Link to a job that executed this action
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
-        
+
+        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
+      
         rm -f ${TERRAFORM_OUTPUT_FILE}
         
         exit $TERRAFORM_RESULT

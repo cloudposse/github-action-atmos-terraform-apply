@@ -359,7 +359,10 @@ runs:
 
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
           echo "PLAN FAILED" >> $GITHUB_STEP_SUMMARY
+          exit 1
         fi
+
+        TERRAFORM_PLAN_DIFF_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-diff-output.txt"
 
         if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
 
@@ -371,7 +374,9 @@ runs:
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
             --new ${{ steps.vars.outputs.renewed_plan_filename }} \
-            --skip-init
+            --skip-init \
+          &> ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}
+          
           PLAN_CHANGED=$?
         fi
 
@@ -380,6 +385,8 @@ runs:
         else
           echo "plan_changed=true" >> $GITHUB_OUTPUT
           echo "PLAN DIFFERENT" >> $GITHUB_STEP_SUMMARY
+          cat ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE} >> $GITHUB_STEP_SUMMARY
+          exit 1
         fi
 
     - name: Check Whether Infracost is Enabled

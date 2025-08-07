@@ -374,7 +374,6 @@ runs:
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
             --new ${{ steps.vars.outputs.renewed_plan_filename }} \
-            --skip-init \
           > ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}
           
           PLAN_CHANGED=$?

@@ -366,12 +366,6 @@ runs:
             -no-color \
         &> ${TERRAFORM_PLAN_OUTPUT_FILE}
 
-        # atmos terraform plan ${{ inputs.component }} \
-        #   --stack ${{ inputs.stack }} \
-        #   -input=false \
-        #   -no-color \
-        # &> ${TERRAFORM_PLAN_OUTPUT_FILE}
-
         PLAN_CHANGED=$?
 
         cat ${TERRAFORM_PLAN_OUTPUT_FILE}

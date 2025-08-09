@@ -1,4 +1,4 @@
-name: "Integration Tests - Plan failed"
+name: "Integration Tests - Plan diff"
 
 on:
   workflow_dispatch: {}

@@ -26,7 +26,12 @@ templates:
     {{ end }}
 
   result: |
+    {{- if eq .ExitCode 0 }}
     <details><summary><a id="result-{{.Vars.stack}}-{{.Vars.component}}" />{{if .Result}}{{ .Result }}{{end}}</summary>
+    {{- end }}
+    {{- if eq .ExitCode 1 }}
+    <details><summary><a id="result-{{.Vars.stack}}-{{.Vars.component}}" />:warning: Error summary</summary>
+    {{- end }}
 
     <br/>
     To reproduce this locally, run:<br/><br/>
@@ -60,6 +65,7 @@ templates:
     {{- end }}
 terraform:
   apply:
+    disable_label: false
     template: |
       {{template "apply_title" .}}
       {{template "branding" .}}

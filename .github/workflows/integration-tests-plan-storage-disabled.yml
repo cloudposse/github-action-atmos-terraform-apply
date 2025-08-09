@@ -51,7 +51,7 @@ jobs:
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar"
+          component: "foobar-plan-storage"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           plan-storage: false

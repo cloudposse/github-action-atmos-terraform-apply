@@ -2,6 +2,7 @@ import:
   - catalog/foobar
   - catalog/foobar-plan-diff
   - catalog/foobar-plan-storage
+  - catalog/foobar-plan-fail  
   - catalog/foobar-atmos-pro
 
 terraform:

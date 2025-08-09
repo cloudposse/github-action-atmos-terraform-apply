@@ -1,0 +1,61 @@
+name: "Integration Tests - Plan Storage disabled"
+
+on:
+  workflow_dispatch: {}
+
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  AWS_REGION: us-east-2
+
+
+# Permissions required for assuming AWS identity
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      fail-fast: false # Don't fail fast to avoid locking TF State
+      matrix:
+        platform: [terraform, opentofu]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - shell: bash
+        id: env
+        run: |
+          mkdir -p ${{ runner.temp }}
+          cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_ROLE__#${{ secrets.TERRAFORM_STATE_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Apply Atmos Component
+        uses: ./
+        with:
+          component: "foobar"
+          stack: "plat-ue2-sandbox"
+          atmos-config-path: ${{ runner.temp }}
+          plan-storage: false
+          debug: true
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+  

@@ -68,7 +68,6 @@ jobs:
           component: "foobar-plan-diff"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
-          atmos-version: "v1.185.1-rc.2"
           debug: true
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}

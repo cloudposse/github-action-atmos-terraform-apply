@@ -5,3 +5,13 @@ resource "random_id" "foo" {
   }
   byte_length = 8
 }
+
+
+resource "null_resource" "dns_check" {
+  count = var.fail ? 1 : 0
+
+  provisioner "local-exec" {
+    command     = "false"
+    interpreter = ["bash", "-c"]
+  }
+}

@@ -349,11 +349,28 @@ runs:
 
         TERRAFORM_PLAN_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-output.txt"
 
-        atmos terraform plan ${{ inputs.component }} \
-          --stack ${{ inputs.stack }} \
-          -input=false \
-          -no-color \
+        tfcmt \
+          --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
+          -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
+          -var "component:${{ inputs.component }}" \
+          -var "stack:${{ inputs.stack }}" \
+          -var "job:${{ github.job }}" \
+          -var "logoImage:${{ inputs.branding-logo-image }}" \
+          -var "logoUrl:${{ inputs.branding-logo-url }}" \
+          --output "${{ github.workspace }}/atmos-apply-summary.md" \
+          --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
+          plan -- \
+            atmos terraform plan ${{ inputs.component }} \
+            --stack ${{ inputs.stack }} \
+            -input=false \
+            -no-color \
         &> ${TERRAFORM_PLAN_OUTPUT_FILE}
+
+        # atmos terraform plan ${{ inputs.component }} \
+        #   --stack ${{ inputs.stack }} \
+        #   -input=false \
+        #   -no-color \
+        # &> ${TERRAFORM_PLAN_OUTPUT_FILE}
 
         PLAN_CHANGED=$?
 
@@ -361,6 +378,7 @@ runs:
 
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
           echo "PLAN FAILED" >> $GITHUB_STEP_SUMMARY
+           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi
 

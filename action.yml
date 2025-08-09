@@ -350,7 +350,7 @@ runs:
         TERRAFORM_PLAN_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-output.txt"
 
         tfcmt \
-          --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
+          --config "${GITHUB_ACTION_PATH}/config/atmos_plan_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
           -var "component:${{ inputs.component }}" \
           -var "stack:${{ inputs.stack }}" \
@@ -361,7 +361,7 @@ runs:
           -var "infracost_total_monthly_cost:0" \
           --output "${{ github.workspace }}/atmos-plan-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
-          apply -- \
+          plan -- \
             atmos terraform plan ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
             -input=false \

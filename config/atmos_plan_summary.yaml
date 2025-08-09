@@ -1,0 +1,68 @@
+# tfcmt Configuration used for posting Terraform GitHub Summaries
+# https://suzuki-shunsuke.github.io/tfcmt/config
+embedded_var_names: []
+ci:
+  pr: []
+  owner: []
+  repo: []
+  sha: []
+  link: []
+  vars: {}
+templates:
+  title: |
+    {{ if eq .ExitCode 1}}
+    ## Apply Failed for `{{.Vars.component}}` in `{{.Vars.stack}}`
+    {{ end }}
+    {{- if eq .ExitCode 0}}
+    ## Apply Succeeded for `{{.Vars.component}}` in `{{.Vars.stack}}` 
+    {{ end }}
+
+  badge: |
+    {{ if eq .ExitCode 1}}
+    [![apply](https://shields.io/badge/APPLY-FAILED-critical?style=for-the-badge)](#user-content-apply-{{.Vars.stack}}-{{.Vars.component}}) 
+    {{ end }}
+    {{- if eq .ExitCode 0}}
+    [![apply](https://shields.io/badge/APPLY-SUCCESS-success?style=for-the-badge)](#user-content-apply-{{.Vars.stack}}-{{.Vars.component}})
+    {{ end }}
+
+  result: |
+    {{- if eq .ExitCode 0 }}
+    <details><summary><a id="result-{{.Vars.stack}}-{{.Vars.component}}" />{{if .Result}}{{ .Result }}{{end}}</summary>
+    {{- end }}
+    {{- if eq .ExitCode 1 }}
+    <details><summary><a id="result-{{.Vars.stack}}-{{.Vars.component}}" />:warning: Error summary</summary>
+    {{- end }}
+
+    <br/>
+    To reproduce this locally, run:<br/><br/>
+
+    ```shell
+    atmos terraform plan {{.Vars.component}} -s {{.Vars.stack}}
+    ```
+
+    {{wrapCode .CombinedOutput}}
+    </details>
+
+  branding: |
+    {{- if ne .Vars.logoImage "" }}
+    <a href="{{.Vars.logoUrl}}"><img src="{{.Vars.logoImage}}" width="100px" align="right"/></a>
+    {{- end }}
+terraform:
+  apply:
+    disable_label: false
+    template: |
+      {{template "title" .}}
+      {{template "branding" .}}
+      {{template "badge" .}}
+      {{template "result" .}}
+
+
+      </details>
+      
+    when_parse_error:
+      template: |
+        {{template "title" .}}
+
+        <details><summary>Result</summary>
+        {{wrapCode .CombinedOutput}}
+        </details>

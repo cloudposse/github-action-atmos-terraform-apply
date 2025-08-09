@@ -387,10 +387,10 @@ runs:
           cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos_plan_diff_github_summary.md
           sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos_plan_diff_github_summary.md
           sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos_plan_diff_github_summary.md
-          sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_OUTPUT_FILE}" -e 'd}' ./atmos_plan_diff_github_summary.md
+          sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos_plan_diff_github_summary.md
           cat ./atmos_plan_diff_github_summary.md >> $GITHUB_STEP_SUMMARY
 
-          cat ${TERRAFORM_PLAN_OUTPUT_FILE}
+          cat ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}
           exit 1
         fi
 

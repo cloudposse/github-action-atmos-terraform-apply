@@ -378,7 +378,7 @@ runs:
 
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
           echo "PLAN FAILED" >> $GITHUB_STEP_SUMMARY
-           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
+          cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi
 

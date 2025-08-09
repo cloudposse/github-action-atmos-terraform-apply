@@ -32,6 +32,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Setup Atmos Test Config
+        id: env
         shell: bash
         run: |
           mkdir -p ${{ runner.temp }}

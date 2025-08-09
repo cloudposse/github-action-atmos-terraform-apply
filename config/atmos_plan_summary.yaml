@@ -56,7 +56,6 @@ terraform:
       {{template "badge" .}}
       {{template "result" .}}
 
-
       </details>
       
     when_parse_error:

@@ -6,5 +6,11 @@ variable "example" {
 variable "seed" {
   type        = string
   description = "testing variable"
-  default     = "default"
+  default     = "seed"
+}
+
+variable "fail" {
+  type        = bool
+  description = "Fail"
+  default     = false
 }

@@ -5,6 +5,8 @@
 
 <details><summary>Terraform <strong>Plan</strong> outdated diff</summary>
 
+{{DIFF}}
+
 ```
 {{DIFF}}
 ```

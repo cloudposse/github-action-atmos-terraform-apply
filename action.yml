@@ -362,11 +362,11 @@ runs:
           exit 1
         fi
 
+        cp ${{ steps.vars.outputs.plan_file }} ${{ steps.vars.outputs.renewed_plan_file }}
+
         TERRAFORM_PLAN_DIFF_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-diff-output.txt"
 
         if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
-
-          cp ${{ steps.vars.outputs.plan_file }} ${{ steps.vars.outputs.renewed_plan_file }}
 
           atmos terraform plan-diff ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \

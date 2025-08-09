@@ -2,7 +2,7 @@ components:
   terraform:
     foobar-plan-fail:
       metadata:
-        component: foobar
+        component: foobar-fail
       settings:
         github:
           actions_enabled: true

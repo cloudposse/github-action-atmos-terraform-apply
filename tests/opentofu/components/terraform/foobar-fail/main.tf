@@ -7,11 +7,9 @@ resource "random_id" "foo" {
 }
 
 
-resource "null_resource" "dns_check" {
+resource "null_resource" "default" {
   count = var.fail ? 1 : 0
-
-  provisioner "local-exec" {
-    command     = "false"
-    interpreter = ["bash", "-c"]
+  triggers = {
+    test = random_id.foo["test"]
   }
 }

@@ -1,4 +1,4 @@
-name: "Integration Tests"
+name: "Integration Tests - Plan Storage disabled"
 
 on:
   workflow_dispatch: {}
@@ -44,32 +44,17 @@ jobs:
 
           echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
 
-      - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v4
-        with:
-          component: "foobar"
-          stack: "plat-ue2-sandbox"
-          atmos-config-path: ${{ runner.temp }}
-          debug: true
-        env:
-          TF_VAR_seed: ${{ steps.env.outputs.seed }}
-
-
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Wait 60 sec to wait s3 bucket would be consistent (read after write consistency)
-        shell: bash
-        run: |
-          sleep 60;
-
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar"
+          component: "foobar-plan-storage"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          plan-storage: false
           debug: true
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}

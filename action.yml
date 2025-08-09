@@ -359,7 +359,7 @@ runs:
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
           -var "infracost_details_diff_breakdown:" \
           -var "infracost_total_monthly_cost:0" \
-          --output "${{ github.workspace }}/atmos-apply-summary.md" \
+          --output "${{ github.workspace }}/atmos-plan-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
             atmos terraform plan ${{ inputs.component }} \
@@ -379,7 +379,7 @@ runs:
         cat ${TERRAFORM_PLAN_OUTPUT_FILE}
 
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
-          echo "PLAN FAILED" >> $GITHUB_STEP_SUMMARY
+          mv ${{ github.workspace }}/atmos-plan-summary.md ${{ github.workspace }}/atmos-apply-summary.md
           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi

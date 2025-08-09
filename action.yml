@@ -357,6 +357,8 @@ runs:
 
         PLAN_CHANGED=$?
 
+        cat ${TERRAFORM_PLAN_OUTPUT_FILE}
+
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
           echo "PLAN FAILED" >> $GITHUB_STEP_SUMMARY
           exit 1

@@ -384,14 +384,11 @@ runs:
           echo "plan_changed=false" >> $GITHUB_OUTPUT
         else
           echo "plan_changed=true" >> $GITHUB_OUTPUT
-          cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos_plan_diff_github_summary.md
-          sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos_plan_diff_github_summary.md
-          sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos_plan_diff_github_summary.md
-          sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos_plan_diff_github_summary.md
-          cat ./atmos_plan_diff_github_summary.md >> $GITHUB_STEP_SUMMARY
-
-          cat ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}
-          exit 1
+          cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos-apply-summary.md
+          sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos-apply-summary.md
+          sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos-apply-summary.md
+          sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos-apply-summary.md
+          cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
         fi
 
     - name: Check Whether Infracost is Enabled
@@ -511,6 +508,8 @@ runs:
         sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
         sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
         
+        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
+
         if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
           echo "Terraform apply executed successfully"
@@ -522,8 +521,6 @@ runs:
         # Link to a job that executed this action
         echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
 
-        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
-      
         rm -f ${TERRAFORM_OUTPUT_FILE}
         
         exit $TERRAFORM_RESULT

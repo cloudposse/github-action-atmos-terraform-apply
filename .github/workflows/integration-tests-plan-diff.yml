@@ -71,5 +71,5 @@ jobs:
           atmos-config-path: ${{ runner.temp }}
           debug: true
         env:
-          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}-b
   

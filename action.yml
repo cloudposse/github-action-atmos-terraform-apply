@@ -387,7 +387,7 @@ runs:
           cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos_plan_diff_github_summary.md
           sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos_plan_diff_github_summary.md
           sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos_plan_diff_github_summary.md
-          sed -i -e "s/{{DIFF}}/{r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}'./atmos_plan_diff_github_summary.md
+          sed -i -e '/{{DIFF}}/{r terraform-${GITHUB_RUN_ID}-plan-diff-output.txt' -e 'd}'./atmos_plan_diff_github_summary.md
           cat ./atmos_plan_diff_github_summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi

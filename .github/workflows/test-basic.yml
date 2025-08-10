@@ -1,4 +1,4 @@
-name: "Integration Tests - Plan diff"
+name: "Integration Tests"
 
 on:
   workflow_dispatch:
@@ -10,8 +10,11 @@ on:
       sha:
         description: "The sha of the commit that triggered the workflow run"
         required: false
-        type: string
-  
+        type: string      
+
+  pull_request:
+    types: [opened, synchronize, reopened]
+
 env:
   AWS_REGION: us-east-2
 
@@ -24,7 +27,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       max-parallel: 1
       fail-fast: false # Don't fail fast to avoid locking TF State
@@ -36,6 +38,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - shell: bash
+        id: env
         run: |
           mkdir -p ${{ runner.temp }}
           cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml          
@@ -53,31 +56,32 @@ jobs:
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v4
         with:
-          component: "foobar-plan-diff"
+          component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
           sha: ${{ inputs.sha }}
         env:
-          TF_VAR_seed: ${{ steps.env.outputs.seed }}-a
-            
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
+      - name: Wait 60 sec to wait s3 bucket would be consistent (read after write consistency)
         shell: bash
         run: |
-          sleep 15;
+          sleep 60;
 
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar-plan-diff"
+          component: "foobar"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
           sha: ${{ inputs.sha }}
         env:
-          TF_VAR_seed: ${{ steps.env.outputs.seed }}-b
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
   

@@ -1,4 +1,4 @@
-name: "Integration Tests - Plan Storage disabled"
+name: "Integration Tests - Plan Fail"
 
 on:
   workflow_dispatch:
@@ -12,6 +12,9 @@ on:
         required: false
         type: string
 
+  pull_request:
+    types: [opened, synchronize, reopened]
+      
 env:
   AWS_REGION: us-east-2
 
@@ -24,6 +27,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       max-parallel: 1
       fail-fast: false # Don't fail fast to avoid locking TF State
@@ -57,7 +61,7 @@ jobs:
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar-plan-storage"
+          component: "foobar-plan-fail"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           plan-storage: false

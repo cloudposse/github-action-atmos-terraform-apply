@@ -7,9 +7,10 @@ on:
         description: "The fully-formed ref of the branch or tag that triggered the workflow run"
         required: false
         type: string
-
-  pull_request:
-    types: [opened, synchronize, reopened]
+      sha:
+        description: "The sha of the commit that triggered the workflow run"
+        required: false
+        type: string
 
 env:
   AWS_REGION: us-east-2
@@ -56,6 +57,7 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+          sha: ${{ inputs.sha }}
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}
 
@@ -76,7 +78,7 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
-          sha: ${{ inputs.ref }}
+          sha: ${{ inputs.sha }}
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}
   

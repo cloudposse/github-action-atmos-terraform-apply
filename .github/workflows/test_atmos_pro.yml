@@ -1,10 +1,16 @@
 name: "Atmos Pro Integration Tests"
 
 on:
-  workflow_dispatch: {}
-
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The fully-formed ref of the branch or tag that triggered the workflow run"
+        required: false
+        type: string
+      sha:
+        description: "The sha of the commit that triggered the workflow run"
+        required: false
+        type: string
 
 env:
   AWS_REGION: us-east-2
@@ -29,7 +35,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ inputs.ref }}
 
       - name: Setup Atmos Test Config
         id: env
@@ -55,12 +61,13 @@ jobs:
           component: "foobar-atmos-pro"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          sha: ${{ inputs.sha }}
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ inputs.ref }}
 
       - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
         shell: bash
@@ -74,6 +81,7 @@ jobs:
           component: "foobar-atmos-pro"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          sha: ${{ inputs.sha }}
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}
   

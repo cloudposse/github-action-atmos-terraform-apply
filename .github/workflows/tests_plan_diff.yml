@@ -1,11 +1,17 @@
 name: "Integration Tests - Plan diff"
 
 on:
-  workflow_dispatch: {}
-
-  pull_request:
-    types: [opened, synchronize, reopened]
-
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The fully-formed ref of the branch or tag that triggered the workflow run"
+        required: false
+        type: string
+      sha:
+        description: "The sha of the commit that triggered the workflow run"
+        required: false
+        type: string
+    
 env:
   AWS_REGION: us-east-2
 
@@ -27,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ inputs.ref }}
 
       - shell: bash
         run: |
@@ -42,7 +48,7 @@ jobs:
           sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
-          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT          
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
 
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v4
@@ -51,12 +57,13 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+          sha: ${{ inputs.sha }}
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}-a
             
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ inputs.ref }}
 
       - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
         shell: bash
@@ -70,6 +77,7 @@ jobs:
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
+          sha: ${{ inputs.sha }}
         env:
           TF_VAR_seed: ${{ steps.env.outputs.seed }}-b
   

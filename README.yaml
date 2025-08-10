@@ -210,7 +210,7 @@ usage: |-
         runs-on: ubuntu-latest
         steps:
           - name: Terraform Apply
-            uses: cloudposse/github-action-atmos-terraform-apply@v2
+            uses: cloudposse/github-action-atmos-terraform-apply@v5
             with:
               component: "foobar"
               stack: "plat-ue2-sandbox"

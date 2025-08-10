@@ -12,9 +12,6 @@ on:
         required: false
         type: string
 
-  pull_request:
-    types: [opened, synchronize, reopened]
-    
 env:
   AWS_REGION: us-east-2
 

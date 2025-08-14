@@ -51,7 +51,7 @@ jobs:
           echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
 
       - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v4
+        uses: cloudposse/github-action-atmos-terraform-plan@v5
         with:
           component: "foobar"
           stack: "plat-ue2-sandbox"

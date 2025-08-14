@@ -1,10 +1,16 @@
-name: "Integration Tests"
+name: "Integration Tests - Plan Fail"
 
 on:
-  workflow_dispatch: {}
-
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The fully-formed ref of the branch or tag that triggered the workflow run"
+        required: false
+        type: string
+      sha:
+        description: "The sha of the commit that triggered the workflow run"
+        required: false
+        type: string
 
 env:
   AWS_REGION: us-east-2
@@ -18,6 +24,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       max-parallel: 1
       fail-fast: false # Don't fail fast to avoid locking TF State
@@ -26,9 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ inputs.ref }}
 
       - shell: bash
+        id: env
         run: |
           mkdir -p ${{ runner.temp }}
           cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml          
@@ -41,26 +49,21 @@ jobs:
           sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
-      - name: Plan Atmos Component
-        uses: cloudposse/github-action-atmos-terraform-plan@v4
-        with:
-          component: "foobar"
-          stack: "plat-ue2-sandbox"
-          atmos-config-path: ${{ runner.temp }}
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - name: Wait 15 sec to wait s3 bucket would be consistent (read after write consistency)
-        shell: bash
-        run: |
-          sleep 15;
+          ref: ${{ inputs.ref }}
 
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar"
+          component: "foobar-plan-fail"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
+          plan-storage: false
           debug: true
+          sha: ${{ inputs.sha }}
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+  

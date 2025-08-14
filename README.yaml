@@ -65,7 +65,8 @@ usage: |-
   ### Config
 
   > [!IMPORTANT]
-  > **Please note!** This GitHub Action only works with `atmos >= 1.158.0`.
+  > **Please note!** This GitHub Action only works with `atmos >= 1.186.0`.
+  > If you are using `atmos >= 1.158.0, < 1.186.0` please use `v4` version of this action.
   > If you are using `atmos >= 1.99.0, < 1.158.0` please use `v3` version of this action.    
   > If you are using `atmos >= 1.63.0, < 1.99.0` please use `v2` version of this action.  
   > If you are using `atmos < 1.63.0` please use `v1` version of this action.
@@ -209,12 +210,19 @@ usage: |-
         runs-on: ubuntu-latest
         steps:
           - name: Terraform Apply
-            uses: cloudposse/github-action-atmos-terraform-apply@v2
+            uses: cloudposse/github-action-atmos-terraform-apply@v5
             with:
               component: "foobar"
               stack: "plat-ue2-sandbox"
               atmos-config-path: ./rootfs/usr/local/etc/atmos/
   ```
+  ### Migrating from `v4` to `v5`
+
+  The notable changes in `v5` are:
+
+  - `v5` works only with `atmos >= 1.186.0`
+  - `v5` uses `atmos terraform plan-diff` to ensure changes to be applied are consistent with the stored (approved by the user) planfile.
+
   ### Migrating from `v3` to `v4`
 
   The notable changes in `v4` are:

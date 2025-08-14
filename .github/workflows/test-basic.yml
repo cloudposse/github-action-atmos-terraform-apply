@@ -1,0 +1,84 @@
+name: "Integration Tests"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The fully-formed ref of the branch or tag that triggered the workflow run"
+        required: false
+        type: string
+      sha:
+        description: "The sha of the commit that triggered the workflow run"
+        required: false
+        type: string      
+
+env:
+  AWS_REGION: us-east-2
+
+
+# Permissions required for assuming AWS identity
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      fail-fast: false # Don't fail fast to avoid locking TF State
+      matrix:
+        platform: [terraform, opentofu]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - shell: bash
+        id: env
+        run: |
+          mkdir -p ${{ runner.temp }}
+          cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml          
+          sed -i -e 's#__STORAGE_TABLE__#${{ secrets.TERRAFORM_STATE_TABLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__STORAGE_ROLE__#${{ secrets.TERRAFORM_STATE_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__PLAN_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+          sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
+
+          echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
+
+      - name: Plan Atmos Component
+        uses: cloudposse/github-action-atmos-terraform-plan@v4
+        with:
+          component: "foobar"
+          stack: "plat-ue2-sandbox"
+          atmos-config-path: ${{ runner.temp }}
+          debug: true
+          sha: ${{ inputs.sha }}
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Wait 60 sec to wait s3 bucket would be consistent (read after write consistency)
+        shell: bash
+        run: |
+          sleep 60;
+
+      - name: Apply Atmos Component
+        uses: ./
+        with:
+          component: "foobar"
+          stack: "plat-ue2-sandbox"
+          atmos-config-path: ${{ runner.temp }}
+          debug: true
+          sha: ${{ inputs.sha }}
+        env:
+          TF_VAR_seed: ${{ steps.env.outputs.seed }}
+  

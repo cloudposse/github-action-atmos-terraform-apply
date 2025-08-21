@@ -365,6 +365,8 @@ runs:
             --stack ${{ inputs.stack }} \
             -input=false \
             -no-color \
+            --skip-planfile=true \
+            -out=${{ steps.vars.outputs.renewed_plan_file }} \
         &> ${TERRAFORM_PLAN_OUTPUT_FILE}
 
         PLAN_CHANGED=$?
@@ -376,8 +378,6 @@ runs:
           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi
-
-        cp ${{ steps.vars.outputs.plan_file }} ${{ steps.vars.outputs.renewed_plan_file }}
 
         TERRAFORM_PLAN_DIFF_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-diff-output.txt"
 

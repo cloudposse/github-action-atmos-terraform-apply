@@ -238,10 +238,9 @@ runs:
         COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#_#g')
         COMPONENT_SLUG="$STACK_NAME-$COMPONENT_NAME"
         COMPONENT_CACHE_KEY=$(basename "${{ fromJson(steps.atmos-settings.outputs.settings).component-path }}")
-        PLANFILE_SLUG="$STACK_NAME-$(echo "${{ inputs.component }}" | sed 's#/#-#g')"
-        PLAN_FILENAME="$PLANFILE_SLUG.planfile"
+        PLAN_FILENAME="$COMPONENT_SLUG.planfile"
         PLAN_FILE="${COMPONENT_PATH}/${PLAN_FILENAME}"
-        RETRIEVED_PLAN_FILENAME="$PLANFILE_SLUG-${{ inputs.sha }}.planfile"
+        RETRIEVED_PLAN_FILENAME="$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         RETRIEVED_PLAN_FILE="${COMPONENT_PATH}/${RETRIEVED_PLAN_FILENAME}"
         RENEWED_PLAN_FILENAME="new.${RETRIEVED_PLAN_FILENAME}"
         RENEWED_PLAN_FILE="${COMPONENT_PATH}/${RENEWED_PLAN_FILENAME}"

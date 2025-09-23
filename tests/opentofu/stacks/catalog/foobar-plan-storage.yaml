@@ -1,6 +1,6 @@
 components:
   terraform:
-    foobar-plan-storage:
+    foobar/plan-storage:
       metadata:
         component: foobar
       settings:

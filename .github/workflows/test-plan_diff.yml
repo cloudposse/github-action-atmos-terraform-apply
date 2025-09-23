@@ -53,7 +53,7 @@ jobs:
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v4
         with:
-          component: "foobar-plan-diff"
+          component: "foobar/plan-diff"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true
@@ -73,7 +73,7 @@ jobs:
       - name: Apply Atmos Component
         uses: ./
         with:
-          component: "foobar-plan-diff"
+          component: "foobar/plan-diff"
           stack: "plat-ue2-sandbox"
           atmos-config-path: ${{ runner.temp }}
           debug: true

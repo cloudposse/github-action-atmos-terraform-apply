@@ -1,6 +1,6 @@
 components:
   terraform:
-    foobar-plan-diff:
+    foobar/plan-diff:
       metadata:
         component: foobar
       settings:

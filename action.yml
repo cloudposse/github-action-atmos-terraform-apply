@@ -406,6 +406,8 @@ runs:
           exit 1 
         fi
 
+
+
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
       shell: bash

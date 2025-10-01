@@ -398,9 +398,9 @@ runs:
         else
           echo "plan_changed=true" >> $GITHUB_OUTPUT
           cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos-apply-summary.md
-          sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos-apply-summary.md
+          # sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos-apply-summary.md
           sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos-apply-summary.md
-          # sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos-apply-summary.md
+          sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos-apply-summary.md
           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
 
           exit 1 

@@ -398,13 +398,16 @@ runs:
         else
           echo "plan_changed=true" >> $GITHUB_OUTPUT
           cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos-apply-summary.md
-          sed -i "s/{{COMPONENT_NAME}}/${{ inputs.component }}/g" ./atmos-apply-summary.md
+          COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#\\/#g')
+          sed -i "s/{{COMPONENT_NAME}}/${COMPONENT_NAME}/g" ./atmos-apply-summary.md
           sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos-apply-summary.md
           sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos-apply-summary.md
           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
 
           exit 1 
         fi
+
+
 
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'

@@ -51,6 +51,10 @@ inputs:
     description: "Enable plan storage. Default: 'true'. Set to 'false' to disable plan storage."
     required: false
     default: 'true'
+  identity:
+    description: Atmos auth identity
+    required: false
+    default: ""
 outputs:
   status:
     description: Apply Status. Either 'succeeded' or 'failed'
@@ -349,6 +353,13 @@ runs:
 
         TERRAFORM_PLAN_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-output.txt"
 
+        base_cmd=""
+
+        if [[ -n "${{ inputs.identity }}" ]]; then
+          base_cmd+=" --identity=${{ inputs.identity }}"
+        fi
+
+
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_plan_summary.yaml" \
           -var "target:${{ inputs.stack }}-${{ inputs.component }}" \
@@ -362,6 +373,7 @@ runs:
           apply -- \
             atmos terraform plan ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
+            ${base_cmd} \
             -input=false \
             -no-color \
             -out=${{ steps.vars.outputs.renewed_plan_file }} \
@@ -383,6 +395,7 @@ runs:
 
           atmos terraform plan-diff ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
+            ${base_cmd} \
             -input=false \
             -no-color \
             --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
@@ -501,6 +514,7 @@ runs:
           apply -- \
             atmos terraform deploy ${{ inputs.component }} \
             --stack ${{ inputs.stack }} \
+            ${base_cmd} \
             -input=false \
             -no-color \
             --planfile ${{ steps.vars.outputs.renewed_plan_filename }} \
@@ -512,7 +526,10 @@ runs:
         set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
-        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} --skip-init -- -json -compact-warnings -no-color  | \
+        atmos terraform output ${{ inputs.component }} \
+          --stack ${{ inputs.stack }} \
+          ${base_cmd} \
+          --skip-init -- -json -compact-warnings -no-color  | \
           grep -v 'Switched to workspace' | \
           awk '$1~/^Warnings:$/ {exit} {print}' | \
           grep -v 'WARN detected' 1> ${{ steps.vars.outputs.component_path }}/output_values.json        

@@ -368,7 +368,7 @@ runs:
           -var "job:${{ github.job }}" \
           -var "logoImage:${{ inputs.branding-logo-image }}" \
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
-          --output "${{ github.workspace }}/atmos-plan-summary.md" \
+          --output "${{ $GITHUB_WORKSPACE }}/atmos-plan-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
             atmos terraform plan ${{ inputs.component }} \
@@ -384,7 +384,7 @@ runs:
         cat ${TERRAFORM_PLAN_OUTPUT_FILE}
 
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
-          mv ${{ github.workspace }}/atmos-plan-summary.md ${{ github.workspace }}/atmos-apply-summary.md
+          mv ${{ $GITHUB_WORKSPACE }}/atmos-plan-summary.md ${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md
           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi
@@ -509,7 +509,7 @@ runs:
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
           -var "logoImage:${{ inputs.branding-logo-image }}" \
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
-          --output "${{ github.workspace }}/atmos-apply-summary.md" \
+          --output "${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
             atmos terraform deploy ${{ inputs.component }} \
@@ -535,15 +535,15 @@ runs:
           grep -v 'WARN detected' 1> ${{ steps.vars.outputs.component_path }}/output_values.json        
 
         cd ${{ steps.vars.outputs.component_path }}
-        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
+        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md ./
         cd -
         
-        sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
-        sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
-        sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
-        sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md
+        sed -i "s#\`\"#\`#g" ${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md
+        sed -i "s#\"\`#\`#g" ${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md
+        sed -i "s#|--#|:-#g" ${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md
         
-        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
+        cat "${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 
         if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
@@ -554,7 +554,7 @@ runs:
         fi
 
         # Link to a job that executed this action
-        echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
+        echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ $GITHUB_WORKSPACE }}/atmos-apply-summary.md"
 
         rm -f ${TERRAFORM_OUTPUT_FILE}
         

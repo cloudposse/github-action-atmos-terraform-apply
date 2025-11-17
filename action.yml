@@ -425,7 +425,20 @@ runs:
           exit 1 
         fi
 
-
+    - name: Determine Plan File
+      if: env.ACTIONS_ENABLED == 'true'
+      id: plan-file
+      shell: bash
+      run: |
+        if [[ "${{ inputs.skip-plandiff }}" == "true" ]]; then
+          # When skipping plan-diff, use the retrieved plan file
+          echo "plan_file=${{ steps.vars.outputs.retrieved_plan_file }}" >> $GITHUB_OUTPUT
+          echo "plan_filename=${{ steps.vars.outputs.retrieved_plan_filename }}" >> $GITHUB_OUTPUT
+        else
+          # When running plan-diff, use the renewed plan file
+          echo "plan_file=${{ steps.vars.outputs.renewed_plan_file }}" >> $GITHUB_OUTPUT
+          echo "plan_filename=${{ steps.vars.outputs.renewed_plan_filename }}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Check Whether Infracost is Enabled
       if: env.ACTIONS_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
@@ -448,7 +461,7 @@ runs:
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
-        ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.vars.outputs.renewed_plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
+        ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.plan-file.outputs.plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
 
     - name: Generate Infracost Diff
       if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
@@ -522,7 +535,7 @@ runs:
             ${base_cmd} \
             -input=false \
             -no-color \
-            --planfile ${{ steps.vars.outputs.renewed_plan_filename }} \
+            --planfile ${{ steps.plan-file.outputs.plan_filename }} \
             --skip-init \
         &> ${TERRAFORM_OUTPUT_FILE}
         

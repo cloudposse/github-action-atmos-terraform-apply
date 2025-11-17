@@ -51,6 +51,10 @@ inputs:
     description: "Enable plan storage. Default: 'true'. Set to 'false' to disable plan storage."
     required: false
     default: 'true'
+  skip-plandiff:
+    description: "Skip plan diff validation. Default: 'false'. Set to 'true' to skip plan prepare and diff validation."
+    required: false
+    default: 'false'
   identity:
     description: Atmos auth identity
     required: false
@@ -343,7 +347,7 @@ runs:
         key: ${{ steps.vars.outputs.cache-key }}
 
     - name: Plan prepare
-      if: env.ACTIONS_ENABLED == 'true'
+      if: env.ACTIONS_ENABLED == 'true' && inputs.skip-plandiff != 'true'
       id: plan-diff
       shell: bash
       run: |
@@ -424,7 +428,7 @@ runs:
 
 
     - name: Check Whether Infracost is Enabled
-      if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.ACTIONS_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       run: |
         if [[ "${{ fromJson(steps.atmos-settings.outputs.settings).enable-infracost }}" == "true" ]]; then
@@ -434,20 +438,20 @@ runs:
         fi
 
     - name: Setup Infracost
-      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       uses: infracost/actions/setup@v3
       with:
         api-key: ${{ inputs.infracost-api-key }}
 
     - name: Convert PLANFILE to JSON
-      if: env.INFRACOST_ENABLED == 'true' || env.DEBUG_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: (env.INFRACOST_ENABLED == 'true' || env.DEBUG_ENABLED == 'true') && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
         ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.vars.outputs.renewed_plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
 
     - name: Generate Infracost Diff
-      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -463,7 +467,7 @@ runs:
           --out-file=/tmp/infracost.json
 
     - name: Debug Infracost
-      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -472,7 +476,7 @@ runs:
         cat /tmp/infracost.json
 
     - name: Set Infracost Variables
-      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       id: infracost-diff
       working-directory: ${{ steps.vars.outputs.component_path }}
       shell: bash
@@ -489,7 +493,7 @@ runs:
         echo "infracost_diff_total_monthly_cost=$INFRACOST_DIFF_TOTAL_MONTHLY_COST" >> "$GITHUB_OUTPUT"
 
     - name: Terraform Apply
-      if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.ACTIONS_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       id: apply
       shell: bash
       run: |

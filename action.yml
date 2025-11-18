@@ -343,7 +343,7 @@ runs:
       if: env.ACTIONS_ENABLED == 'true'
       with:
         path: |
-          ./${{ steps.vars.outputs.component_path }}/.terraform
+          ${{ steps.vars.outputs.component_path }}/.terraform
         key: ${{ steps.vars.outputs.cache-key }}
 
     - name: Plan prepare

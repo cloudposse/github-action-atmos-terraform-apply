@@ -512,12 +512,16 @@ runs:
       run: |
         set +e
 
-        echo "PEPEPEPEPEPEPEPEPE"
-
         # Remove the environment file from the cache to avoid conflicts with workspace select
-        rm -f ./.terraform/environment        
-        
+        rm -f ./.terraform/environment
+
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
+
+        # Only skip init if plan-diff ran (which already did init)
+        SKIP_INIT_FLAG=""
+        if [[ "${{ inputs.skip-plandiff }}" != "true" ]]; then
+          SKIP_INIT_FLAG="--skip-init"
+        fi
 
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
@@ -538,7 +542,7 @@ runs:
             -input=false \
             -no-color \
             --planfile ${{ steps.plan-file.outputs.plan_filename }} \
-            --skip-init \
+            ${SKIP_INIT_FLAG} \
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?

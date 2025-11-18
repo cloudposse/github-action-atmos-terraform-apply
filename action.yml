@@ -537,7 +537,8 @@ runs:
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
             atmos terraform deploy ${{ inputs.component }} \
-            --stack ${{ inputs.stack }} \    
+            --stack ${{ inputs.stack }} \
+            ${base_cmd} \
             -input=false \
             -no-color \
             --planfile ${{ steps.plan-file.outputs.plan_filename }} \
@@ -551,6 +552,7 @@ runs:
         cat "${TERRAFORM_OUTPUT_FILE}"
         atmos terraform output ${{ inputs.component }} \
           --stack ${{ inputs.stack }} \
+          ${base_cmd} \
           --skip-init -- -json -compact-warnings -no-color  | \
           grep -v 'Switched to workspace' | \
           awk '$1~/^Warnings:$/ {exit} {print}' | \

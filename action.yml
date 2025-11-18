@@ -457,7 +457,7 @@ runs:
         api-key: ${{ inputs.infracost-api-key }}
 
     - name: Convert PLANFILE to JSON
-      if: (env.INFRACOST_ENABLED == 'true' || env.DEBUG_ENABLED == 'true') && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |

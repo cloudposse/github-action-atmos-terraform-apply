@@ -512,6 +512,8 @@ runs:
       run: |
         set +e
 
+        echo "PEPEPEPEPEPEPEPEPE"
+
         # Remove the environment file from the cache to avoid conflicts with workspace select
         rm -f ./.terraform/environment        
         

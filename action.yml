@@ -70,7 +70,7 @@ runs:
 
     - name: Checkout
       if: ${{ inputs.skip-checkout != 'true' }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set atmos cli config path vars
       shell: bash

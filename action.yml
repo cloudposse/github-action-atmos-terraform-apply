@@ -51,6 +51,10 @@ inputs:
     description: "Enable plan storage. Default: 'true'. Set to 'false' to disable plan storage."
     required: false
     default: 'true'
+  skip-plandiff:
+    description: "Skip plan diff validation. Default: 'false'. Set to 'true' to skip plan prepare and diff validation."
+    required: false
+    default: 'false'
   identity:
     description: Atmos auth identity
     required: false
@@ -78,6 +82,7 @@ runs:
         echo "ATMOS_CLI_CONFIG_PATH=$(realpath ${{ inputs.atmos-config-path }})" >> $GITHUB_ENV
 
     - name: Install Atmos
+      if: ${{ inputs.atmos-version != '' }}
       uses: cloudposse/github-action-setup-atmos@v2
       with:
         atmos-version: ${{ inputs.atmos-version }}
@@ -342,7 +347,7 @@ runs:
         key: ${{ steps.vars.outputs.cache-key }}
 
     - name: Plan prepare
-      if: env.ACTIONS_ENABLED == 'true'
+      if: env.ACTIONS_ENABLED == 'true' && inputs.skip-plandiff != 'true'
       id: plan-diff
       shell: bash
       run: |
@@ -368,7 +373,7 @@ runs:
           -var "job:${{ github.job }}" \
           -var "logoImage:${{ inputs.branding-logo-image }}" \
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
-          --output "${{ github.workspace }}/atmos-plan-summary.md" \
+          --output "${GITHUB_WORKSPACE}/atmos-plan-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
             atmos terraform plan ${{ inputs.component }} \
@@ -384,7 +389,7 @@ runs:
         cat ${TERRAFORM_PLAN_OUTPUT_FILE}
 
         if [[ "${PLAN_CHANGED}" != "0" ]]; then
-          mv ${{ github.workspace }}/atmos-plan-summary.md ${{ github.workspace }}/atmos-apply-summary.md
+          mv ${GITHUB_WORKSPACE}/atmos-plan-summary.md ${GITHUB_WORKSPACE}/atmos-apply-summary.md
           cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
           exit 1
         fi
@@ -420,10 +425,23 @@ runs:
           exit 1 
         fi
 
-
+    - name: Determine Plan File
+      if: env.ACTIONS_ENABLED == 'true'
+      id: plan-file
+      shell: bash
+      run: |
+        if [[ "${{ inputs.skip-plandiff }}" == "true" ]]; then
+          # When skipping plan-diff, use the retrieved plan file
+          echo "plan_file=${{ steps.vars.outputs.retrieved_plan_file }}" >> $GITHUB_OUTPUT
+          echo "plan_filename=${{ steps.vars.outputs.retrieved_plan_filename }}" >> $GITHUB_OUTPUT
+        else
+          # When running plan-diff, use the renewed plan file
+          echo "plan_file=${{ steps.vars.outputs.renewed_plan_file }}" >> $GITHUB_OUTPUT
+          echo "plan_filename=${{ steps.vars.outputs.renewed_plan_filename }}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Check Whether Infracost is Enabled
-      if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.ACTIONS_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       run: |
         if [[ "${{ fromJson(steps.atmos-settings.outputs.settings).enable-infracost }}" == "true" ]]; then
@@ -433,20 +451,20 @@ runs:
         fi
 
     - name: Setup Infracost
-      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       uses: infracost/actions/setup@v3
       with:
         api-key: ${{ inputs.infracost-api-key }}
 
     - name: Convert PLANFILE to JSON
-      if: env.INFRACOST_ENABLED == 'true' || env.DEBUG_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
-        ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.vars.outputs.renewed_plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
+        ${{ fromJson(steps.atmos-settings.outputs.settings).command }} show -json "${{ steps.plan-file.outputs.plan_file }}" > "${{ steps.vars.outputs.plan_file }}.json"
 
     - name: Generate Infracost Diff
-      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -462,7 +480,7 @@ runs:
           --out-file=/tmp/infracost.json
 
     - name: Debug Infracost
-      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && env.DEBUG_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       shell: bash
       working-directory: ${{ steps.vars.outputs.component_path }}
       run: |
@@ -471,7 +489,7 @@ runs:
         cat /tmp/infracost.json
 
     - name: Set Infracost Variables
-      if: env.INFRACOST_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       id: infracost-diff
       working-directory: ${{ steps.vars.outputs.component_path }}
       shell: bash
@@ -488,16 +506,22 @@ runs:
         echo "infracost_diff_total_monthly_cost=$INFRACOST_DIFF_TOTAL_MONTHLY_COST" >> "$GITHUB_OUTPUT"
 
     - name: Terraform Apply
-      if: env.ACTIONS_ENABLED == 'true' && steps.plan-diff.outputs.plan_changed == 'false'
+      if: env.ACTIONS_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
       id: apply
       shell: bash
       run: |
         set +e
 
         # Remove the environment file from the cache to avoid conflicts with workspace select
-        rm -f ./.terraform/environment        
-        
+        rm -f ./.terraform/environment
+
         TERRAFORM_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-output.txt"
+
+        # Only skip init if plan-diff ran (which already did init)
+        SKIP_INIT_FLAG=""
+        if [[ "${{ inputs.skip-plandiff }}" != "true" ]]; then
+          SKIP_INIT_FLAG="--skip-init"
+        fi
 
         tfcmt \
           --config "${GITHUB_ACTION_PATH}/config/atmos_github_summary.yaml" \
@@ -509,7 +533,7 @@ runs:
           -var "infracost_total_monthly_cost:${{ steps.infracost-diff.outputs.infracost_diff_total_monthly_cost }}" \
           -var "logoImage:${{ inputs.branding-logo-image }}" \
           -var "logoUrl:${{ inputs.branding-logo-url }}" \
-          --output "${{ github.workspace }}/atmos-apply-summary.md" \
+          --output "${GITHUB_WORKSPACE}/atmos-apply-summary.md" \
           --log-level $([[ "${{ inputs.debug }}" == "true" ]] && echo "DEBUG" || echo "INFO") \
           apply -- \
             atmos terraform deploy ${{ inputs.component }} \
@@ -517,8 +541,8 @@ runs:
             ${base_cmd} \
             -input=false \
             -no-color \
-            --planfile ${{ steps.vars.outputs.renewed_plan_filename }} \
-            --skip-init \
+            --planfile ${{ steps.plan-file.outputs.plan_filename }} \
+            ${SKIP_INIT_FLAG} \
         &> ${TERRAFORM_OUTPUT_FILE}
         
         TERRAFORM_RESULT=$?
@@ -535,15 +559,15 @@ runs:
           grep -v 'WARN detected' 1> ${{ steps.vars.outputs.component_path }}/output_values.json        
 
         cd ${{ steps.vars.outputs.component_path }}
-        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${{ github.workspace }}/atmos-apply-summary.md ./
+        terraform-docs -c ${GITHUB_ACTION_PATH}/config/tfdocs-config.yaml --output-file ${GITHUB_WORKSPACE}/atmos-apply-summary.md ./
         cd -
         
-        sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${{ github.workspace }}/atmos-apply-summary.md
-        sed -i "s#\`\"#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
-        sed -i "s#\"\`#\`#g" ${{ github.workspace }}/atmos-apply-summary.md
-        sed -i "s#|--#|:-#g" ${{ github.workspace }}/atmos-apply-summary.md
+        sed -i "s#\`<sensitive>\`#![Sensitive](https://img.shields.io/badge/sensitive-c40000?style=for-the-badge)#g" ${GITHUB_WORKSPACE}/atmos-apply-summary.md
+        sed -i "s#\`\"#\`#g" ${GITHUB_WORKSPACE}/atmos-apply-summary.md
+        sed -i "s#\"\`#\`#g" ${GITHUB_WORKSPACE}/atmos-apply-summary.md
+        sed -i "s#|--#|:-#g" ${GITHUB_WORKSPACE}/atmos-apply-summary.md
         
-        cat "${{ github.workspace }}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
+        cat "${GITHUB_WORKSPACE}/atmos-apply-summary.md" >> $GITHUB_STEP_SUMMARY
 
         if [[ "${TERRAFORM_RESULT}" == "0" ]]; then
           echo "status=succeeded" >> $GITHUB_OUTPUT
@@ -554,7 +578,7 @@ runs:
         fi
 
         # Link to a job that executed this action
-        echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${{ github.workspace }}/atmos-apply-summary.md"
+        echo "[Job](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "${GITHUB_WORKSPACE}/atmos-apply-summary.md"
 
         rm -f ${TERRAFORM_OUTPUT_FILE}
         

@@ -188,9 +188,10 @@ usage: |-
 
   To enable plan diff mode, set the `plan-diff` input to `true`.
 
-  If plan diff is disabled, the action will apply the stored plan without any verification.
-  Be aware that this can lead to unexpected changes if infrastructure is changed between the plan and apply steps.
-  Also the stored plan can be applied only once. Even if the apply failed on any reason the stored plan became outdated and can not be applied again.
+  > [!IMPORTANT]
+  > If plan diff is disabled, the action will apply the stored plan without any verification.
+  > Be aware that this can lead to unexpected changes if infrastructure is changed between the plan and apply steps.
+  > Also the stored plan can be applied only once. Even if the apply failed on any reason the stored plan became outdated and can not be applied again.
 
   ### Workflow example
 

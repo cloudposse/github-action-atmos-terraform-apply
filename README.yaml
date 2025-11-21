@@ -184,14 +184,14 @@ usage: |-
 
   ### Plan Diff mode
 
-  The action supports a `plan-diff` mode, which will compare the current plan with the stored plan and fail if there are any differences.
+  The action provides a `plan-diff` mode that compares the newly generated plan against the previously stored plan and fails the workflow if any differences are detected.
 
   To enable plan diff mode, set the `plan-diff` input to `true`.
 
   > [!IMPORTANT]
-  > If plan diff is disabled, the action will apply the stored plan without any verification.
-  > Be aware that this can lead to unexpected changes if infrastructure is changed between the plan and apply steps.
-  > Also the stored plan can be applied only once. Even if the apply failed on any reason the stored plan became outdated and can not be applied again.
+> When plan-diff is disabled, the action will apply the stored plan without re-validating it.
+> This may result in unintended changes if the underlying infrastructure has been modified between the plan and apply steps.
+> Additionally, stored plans are single-use: even if an apply operation fails for any reason, the plan becomes outdated and cannot be reused.
 
   ### Workflow example
 

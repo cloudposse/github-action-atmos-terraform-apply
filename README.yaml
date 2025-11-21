@@ -182,6 +182,16 @@ usage: |-
         ...
   ```  
 
+  ### Plan Diff mode
+
+  The action supports a `plan-diff` mode, which will compare the current plan with the stored plan and fail if there are any differences.
+
+  To enable plan diff mode, set the `plan-diff` input to `true`.
+
+  If plan diff is disabled, the action will apply the stored plan without any verification.
+  Be aware that this can lead to unexpected changes if infrastructure is changed between the plan and apply steps.
+  Also the stored plan can be applied only once. Even if the apply failed on any reason the stored plan became outdated and can not be applied again.
+
   ### Workflow example
 
   In this example, the action is triggered when certain events occur, such as a manual workflow dispatch or the opening, synchronization, or reopening of a pull request, specifically on the main branch. It specifies specific permissions related to assuming roles in AWS. Within the "apply" job, the "component" and "stack" are hardcoded (`foobar` and `plat-ue2-sandbox`). In practice, these are usually derived from another action. 

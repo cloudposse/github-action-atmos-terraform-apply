@@ -268,7 +268,11 @@ runs:
         echo "renewed_plan_file=$RENEWED_PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
 
+    # Configure Plan Storage AWS Credentials with output-only mode to avoid polluting
+    # the environment. Credentials are passed explicitly to subsequent steps that need them.
+    # This prevents plan storage credentials from interfering with Atmos auth.
     - name: Configure Plan Storage AWS Credentials
+      id: plan-storage-credentials
       uses: aws-actions/configure-aws-credentials@v4
       if: ${{ ( fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' ||
                 fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == ''  ||
@@ -284,11 +288,18 @@ runs:
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-role }}
         role-session-name: "atmos-terraform-state-gitops"
         mask-aws-account-id: "no"
+        output-credentials: true
+        output-env-credentials: false
 
     - name: Retrieve Plan
       if: ${{ env.ACTIONS_ENABLED == 'true' && inputs.plan-storage == 'true'}}
       uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
+      env:
+        AWS_ACCESS_KEY_ID: ${{ steps.plan-storage-credentials.outputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ steps.plan-storage-credentials.outputs.aws-secret-access-key }}
+        AWS_SESSION_TOKEN: ${{ steps.plan-storage-credentials.outputs.aws-session-token }}
+        AWS_REGION: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
       with:
         action: getPlan
         commitSHA: ${{ inputs.sha }}
@@ -309,6 +320,11 @@ runs:
       if: ${{ env.ACTIONS_ENABLED == 'true' && inputs.plan-storage == 'true'}}
       uses: cloudposse/github-action-terraform-plan-storage@v1
       continue-on-error: true
+      env:
+        AWS_ACCESS_KEY_ID: ${{ steps.plan-storage-credentials.outputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ steps.plan-storage-credentials.outputs.aws-secret-access-key }}
+        AWS_SESSION_TOKEN: ${{ steps.plan-storage-credentials.outputs.aws-session-token }}
+        AWS_REGION: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
       with:
         action: getPlan
         commitSHA: ${{ inputs.sha }}
@@ -325,7 +341,7 @@ runs:
         tableName: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-table }}
         bucketName: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-bucket }}
 
-    - name: Configure Plan AWS Credentials
+    - name: Configure Apply AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       if: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&

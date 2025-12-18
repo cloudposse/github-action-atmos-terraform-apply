@@ -50,6 +50,11 @@ jobs:
 
           echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
 
+      - name: Setup atmos
+        uses: cloudposse/github-action-setup-atmos@v2
+        with:
+          install-wrapper: false
+
       - shell: bash
         run: |-
           atmos describe component foobar -s plat-ue2-sandbox --format=json --process-functions=false --process-templates=false

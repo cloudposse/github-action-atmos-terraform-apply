@@ -50,6 +50,12 @@ jobs:
 
           echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
 
+      - shell: bash
+        run: |-
+          atmos describe component foobar -s plat-ue2-sandbox --format=json --process-functions=false --process-templates=false
+        env:
+          ATMOS_CLI_CONFIG_PATH: /home/runner/work/_temp
+
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v5
         with:

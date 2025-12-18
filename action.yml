@@ -419,7 +419,7 @@ runs:
             ${base_cmd} \
             -input=false \
             -no-color \
-            --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
+            --orig ${{ inputs.component }}/${{ steps.vars.outputs.retrieved_plan_filename }} \
             --new ${{ steps.vars.outputs.renewed_plan_filename }} \
             --skip-init \
           > ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}

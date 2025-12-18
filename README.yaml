@@ -189,9 +189,9 @@ usage: |-
   To enable plan diff mode, set the `plan-diff` input to `true`.
 
   > [!IMPORTANT]
-> When plan-diff is disabled, the action will apply the stored plan without re-validating it.
-> This may result in unintended changes if the underlying infrastructure has been modified between the plan and apply steps.
-> Additionally, stored plans are single-use: even if an apply operation fails for any reason, the plan becomes outdated and cannot be reused.
+  > When plan-diff is disabled, the action will apply the stored plan without re-validating it.
+  > This may result in unintended changes if the underlying infrastructure has been modified between the plan and apply steps.
+  > Additionally, stored plans are single-use: even if an apply operation fails for any reason, the plan becomes outdated and cannot be reused.
 
   ### Workflow example
 

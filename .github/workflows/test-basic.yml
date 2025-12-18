@@ -38,7 +38,7 @@ jobs:
         id: env
         run: |
           mkdir -p ${{ runner.temp }}
-          cp -R ./tests/${{ matrix.platform }}/* ${{ runner.temp }}
+          cp ./tests/${{ matrix.platform  }}/atmos.yaml ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__INFRACOST_ENABLED__#false#g' ${{ runner.temp }}/atmos.yaml
           sed -i -e 's#__STORAGE_REGION__#${{ env.AWS_REGION }}#g' ${{ runner.temp }}/atmos.yaml          
           sed -i -e 's#__STORAGE_BUCKET__#${{ secrets.TERRAFORM_STATE_BUCKET }}#g' ${{ runner.temp }}/atmos.yaml
@@ -49,18 +49,6 @@ jobs:
           sed -i -e 's#__APPLY_ROLE__#${{ secrets.TERRAFORM_APPLY_ROLE }}#g' ${{ runner.temp }}/atmos.yaml
 
           echo "seed=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.platform  }}" >> $GITHUB_OUTPUT
-
-      - name: Setup atmos
-        uses: cloudposse/github-action-setup-atmos@v2
-        with:
-          install-wrapper: false
-
-      - shell: bash
-        run: |-
-          ls -l ${{ runner.temp }}/
-          atmos describe component foobar -s plat-ue2-sandbox --format=json --process-functions=false --process-templates=false
-        env:
-          ATMOS_CLI_CONFIG_PATH: ${{ runner.temp }}
 
       - name: Plan Atmos Component
         uses: cloudposse/github-action-atmos-terraform-plan@v5

@@ -431,6 +431,9 @@ runs:
           echo "plan_changed=false" >> $GITHUB_OUTPUT
         else
           echo "plan_changed=true" >> $GITHUB_OUTPUT
+          echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          cat ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md
+          echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
           cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos-apply-summary.md
           COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#\\/#g')
           sed -i "s/{{COMPONENT_NAME}}/${COMPONENT_NAME}/g" ./atmos-apply-summary.md

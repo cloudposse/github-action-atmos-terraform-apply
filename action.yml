@@ -566,9 +566,6 @@ runs:
         set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
-        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} ${base_cmd} --skip-init
-        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
         atmos terraform output ${{ inputs.component }} \
           --stack ${{ inputs.stack }} \
           ${base_cmd} \

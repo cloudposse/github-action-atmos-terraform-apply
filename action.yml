@@ -412,6 +412,21 @@ runs:
 
         TERRAFORM_PLAN_DIFF_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-diff-output.txt"
 
+        if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
+
+          atmos terraform plan-diff ${{ inputs.component }} \
+            --stack ${{ inputs.stack }} \
+            ${base_cmd} \
+            -input=false \
+            -no-color \
+            --orig ${{ steps.vars.outputs.retrieved_plan_filename }} \
+            --new ${{ steps.vars.outputs.renewed_plan_filename }} \
+            --skip-init \
+          > ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}
+          
+          PLAN_CHANGED=$?
+        fi
+
 
     - name: Determine Plan File
       if: env.ACTIONS_ENABLED == 'true'

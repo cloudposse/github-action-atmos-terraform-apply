@@ -412,10 +412,6 @@ runs:
 
         TERRAFORM_PLAN_DIFF_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-diff-output.txt"
 
-        echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-        cat ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md
-        echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-
         if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
 
           atmos terraform plan-diff ${{ inputs.component }} \
@@ -431,10 +427,6 @@ runs:
           PLAN_CHANGED=$?
         fi
 
-        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-        cat ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md
-        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-        
         if [[ "${PLAN_CHANGED}" == "0" ]]; then
           echo "plan_changed=false" >> $GITHUB_OUTPUT
         else
@@ -574,6 +566,9 @@ runs:
         set -e
                 
         cat "${TERRAFORM_OUTPUT_FILE}"
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+        atmos terraform output ${{ inputs.component }} --stack ${{ inputs.stack }} ${base_cmd} --skip-init
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
         atmos terraform output ${{ inputs.component }} \
           --stack ${{ inputs.stack }} \
           ${base_cmd} \

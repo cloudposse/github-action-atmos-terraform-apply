@@ -412,34 +412,6 @@ runs:
 
         TERRAFORM_PLAN_DIFF_OUTPUT_FILE="./terraform-${GITHUB_RUN_ID}-plan-diff-output.txt"
 
-        if [[ "${{ inputs.plan-storage }}" == "true" ]]; then
-
-          atmos terraform plan-diff ${{ inputs.component }} \
-            --stack ${{ inputs.stack }} \
-            ${base_cmd} \
-            -input=false \
-            -no-color \
-            --orig ${{ inputs.component }}/${{ steps.vars.outputs.retrieved_plan_filename }} \
-            --new ${{ inputs.component }}/${{ steps.vars.outputs.renewed_plan_filename }} \
-            --skip-init \
-          > ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}
-          
-          PLAN_CHANGED=$?
-        fi
-
-        if [[ "${PLAN_CHANGED}" == "0" ]]; then
-          echo "plan_changed=false" >> $GITHUB_OUTPUT
-        else
-          echo "plan_changed=true" >> $GITHUB_OUTPUT
-          cp ${GITHUB_ACTION_PATH}/config/atmos_plan_diff_github_summary.md ./atmos-apply-summary.md
-          COMPONENT_NAME=$(echo "${{ inputs.component }}" | sed 's#/#\\/#g')
-          sed -i "s/{{COMPONENT_NAME}}/${COMPONENT_NAME}/g" ./atmos-apply-summary.md
-          sed -i "s/{{STACK_NAME}}/${{ inputs.stack }}/g" ./atmos-apply-summary.md
-          sed -i -e "/{{DIFF}}/ {r ${TERRAFORM_PLAN_DIFF_OUTPUT_FILE}" -e 'd}' ./atmos-apply-summary.md
-          cat ./atmos-apply-summary.md >> $GITHUB_STEP_SUMMARY
-
-          exit 1 
-        fi
 
     - name: Determine Plan File
       if: env.ACTIONS_ENABLED == 'true'

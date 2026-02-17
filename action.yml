@@ -249,7 +249,7 @@ runs:
         COMPONENT_CACHE_KEY=$(basename "${{ fromJson(steps.atmos-settings.outputs.settings).component-path }}")
         PLAN_FILENAME="$COMPONENT_SLUG.planfile"
         PLAN_FILE="${COMPONENT_PATH}/${PLAN_FILENAME}"
-        RETRIEVED_PLAN_FILENAME="retrived.$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
+        RETRIEVED_PLAN_FILENAME="$COMPONENT_SLUG-${{ inputs.sha }}.planfile"
         RETRIEVED_PLAN_FILE="${COMPONENT_PATH}/${RETRIEVED_PLAN_FILENAME}"
         RENEWED_PLAN_FILENAME="new.${RETRIEVED_PLAN_FILENAME}"
         RENEWED_PLAN_FILE="${COMPONENT_PATH}/${RENEWED_PLAN_FILENAME}"
@@ -267,15 +267,6 @@ runs:
         echo "renewed_plan_filename=$RENEWED_PLAN_FILENAME" >> $GITHUB_OUTPUT
         echo "renewed_plan_file=$RENEWED_PLAN_FILE" >> $GITHUB_OUTPUT
         echo "lock_file=$LOCK_FILE" >> $GITHUB_OUTPUT
-
-    - name: Cache .terraform
-      id: cache
-      uses: actions/cache@v4
-      if: env.ACTIONS_ENABLED == 'true'
-      with:
-        path: |
-          ${{ steps.vars.outputs.component_path }}/.terraform
-        key: ${{ steps.vars.outputs.cache-key }}
 
     # Configure Plan Storage AWS Credentials with output-only mode to avoid polluting
     # the environment. Credentials are passed explicitly to subsequent steps that need them.
@@ -361,6 +352,15 @@ runs:
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role }}
         role-session-name: "atmos-terraform-apply-gitops"
         mask-aws-account-id: "no"
+
+    - name: Cache .terraform
+      id: cache
+      uses: actions/cache@v4
+      if: env.ACTIONS_ENABLED == 'true'
+      with:
+        path: |
+          ${{ steps.vars.outputs.component_path }}/.terraform
+        key: ${{ steps.vars.outputs.cache-key }}
 
     - name: Plan prepare
       if: env.ACTIONS_ENABLED == 'true' && inputs.skip-plandiff != 'true'

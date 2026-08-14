@@ -355,7 +355,7 @@ runs:
 
     - name: Cache .terraform
       id: cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       if: env.ACTIONS_ENABLED == 'true'
       with:
         path: |

@@ -468,7 +468,7 @@ runs:
 
     - name: Setup Infracost
       if: env.INFRACOST_ENABLED == 'true' && (inputs.skip-plandiff == 'true' || steps.plan-diff.outputs.plan_changed == 'false')
-      uses: infracost/actions/setup@v3
+      uses: infracost/actions/setup@v4
       with:
         api-key: ${{ inputs.infracost-api-key }}
 

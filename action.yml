@@ -68,7 +68,7 @@ runs:
   using: "composite"
   steps:
     - name: Install Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
         node-version: 20
 
@@ -83,7 +83,7 @@ runs:
 
     - name: Install Atmos
       if: ${{ inputs.atmos-version != '' }}
-      uses: cloudposse/github-action-setup-atmos@v2
+      uses: cloudposse/github-action-setup-atmos@60878d48037763f759aedee74e9cc0c2dc88e9ec # v3.5.0
       with:
         atmos-version: ${{ inputs.atmos-version }}
         token: ${{ inputs.token }}
@@ -185,7 +185,7 @@ runs:
 
     - name: Install Terraform
       if: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-version != '' && fromJson(steps.atmos-settings.outputs.settings).terraform-version != 'null' }}
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
       with:
         terraform_version: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-version }}
         terraform_wrapper: false
@@ -202,7 +202,7 @@ runs:
           terraform-docs/terraform-docs: v0.20.0
 
     - name: Configure Plan AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
       if: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
           fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
           fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != '' &&
@@ -211,7 +211,7 @@ runs:
         aws-region: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role }}
         role-session-name: "atmos-terraform-apply-gitops"
-        mask-aws-account-id: "no"
+        mask-aws-account-id: "false"
 
     - name: Define Job Control State Variables
       shell: bash
@@ -273,7 +273,7 @@ runs:
     # This prevents plan storage credentials from interfering with Atmos auth.
     - name: Configure Plan Storage AWS Credentials
       id: plan-storage-credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
       if: ${{ ( fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 's3' ||
                 fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == ''  ||
                 fromJson(steps.atmos-settings.outputs.settings).plan-repository-type == 'null' ) &&
@@ -287,7 +287,7 @@ runs:
         aws-region: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-role }}
         role-session-name: "atmos-terraform-state-gitops"
-        mask-aws-account-id: "no"
+        mask-aws-account-id: "false"
         output-credentials: true
         output-env-credentials: false
 
@@ -342,7 +342,7 @@ runs:
         bucketName: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-state-bucket }}
 
     - name: Configure Apply AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
       if: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region != '' &&
         fromJson(steps.atmos-settings.outputs.settings).aws-region != 'null' &&
         fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role != '' &&
@@ -351,11 +351,11 @@ runs:
         aws-region: ${{ fromJson(steps.atmos-settings.outputs.settings).aws-region }}
         role-to-assume: ${{ fromJson(steps.atmos-settings.outputs.settings).terraform-apply-role }}
         role-session-name: "atmos-terraform-apply-gitops"
-        mask-aws-account-id: "no"
+        mask-aws-account-id: "false"
 
     - name: Cache .terraform
       id: cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       if: env.ACTIONS_ENABLED == 'true'
       with:
         path: |

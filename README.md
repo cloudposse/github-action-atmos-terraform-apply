@@ -34,7 +34,7 @@ This Github Action is used to run Terraform apply for a single, Atmos-supported 
 
 
 > [!WARNING]
-> **Deprecated.** Migrate to [Atmos Native CI](https://atmos.tools/deprecated/github-actions/atmos-terraform-apply).
+> **Deprecated.** Migrate to [Atmos Native CI](https://atmos.tools/ci).
 
 
 

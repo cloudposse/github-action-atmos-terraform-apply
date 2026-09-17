@@ -293,7 +293,7 @@ runs:
 
     - name: Retrieve Plan
       if: ${{ env.ACTIONS_ENABLED == 'true' && inputs.plan-storage == 'true'}}
-      uses: cloudposse/github-action-terraform-plan-storage@v1
+      uses: cloudposse/github-action-terraform-plan-storage@v2
       continue-on-error: true
       env:
         AWS_ACCESS_KEY_ID: ${{ steps.plan-storage-credentials.outputs.aws-access-key-id }}
@@ -318,7 +318,7 @@ runs:
 
     - name: Retrieve Lockfile
       if: ${{ env.ACTIONS_ENABLED == 'true' && inputs.plan-storage == 'true'}}
-      uses: cloudposse/github-action-terraform-plan-storage@v1
+      uses: cloudposse/github-action-terraform-plan-storage@v2
       continue-on-error: true
       env:
         AWS_ACCESS_KEY_ID: ${{ steps.plan-storage-credentials.outputs.aws-access-key-id }}
